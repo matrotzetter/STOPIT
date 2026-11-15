@@ -63,4 +63,6 @@ export interface Etat {
   batiments: Batiment[]
   /** Meilleur score au mini-jeu. Ne sert qu'à l'affichage : il ne rapporte rien. */
   recordPuzzle?: number
+  /** false = sons coupés. Absent = sons activés. */
+  sons?: boolean
 }

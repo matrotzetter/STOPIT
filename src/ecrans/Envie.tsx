@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import type { Ecran } from '../App'
 import { CRISTAUX_PAR_ENVIE, DECLENCHEURS, DUREE_ENVIE_MS, EXPIRATION_S, INSPIRATION_S } from '../config'
 import type { Envie as EnvieNotee, Etat } from '../logique/types'
+import { son } from '../sons'
 import { useMaintenant } from '../useMaintenant'
 import MiniJeu from './MiniJeu'
 import Rechute from './Rechute'
@@ -152,6 +153,7 @@ export default function Envie({ etat, maj, aller }: Props) {
         <button
           onClick={() => {
             maj(avecEnvie(etat, true))
+            son('victoire')
             setPhase('victoire')
           }}
         >

@@ -115,6 +115,15 @@ export default function Accueil({ etat, maj, aller }: Props) {
         </section>
       )}
 
+      <div className="rangee">
+        <button className="secondaire" onClick={() => aller('stats')}>
+          Statistiques
+        </button>
+        <button className="secondaire" onClick={() => aller('reglages')}>
+          Réglages
+        </button>
+      </div>
+
       {/* Bouton fixé en bas de l'écran : atteignable du pouce, sans défiler. */}
       <button className="bouton-envie" onClick={() => aller('envie')}>
         J'ai une envie

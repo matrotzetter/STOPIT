@@ -4,6 +4,7 @@
 // Les règles sont dans logique/puzzle.ts ; ici il n'y a que le dessin et le doigt.
 import { useEffect, useRef, useState, type PointerEvent } from 'react'
 import { PUZZLE_TAILLE as N } from '../config'
+import { son } from '../sons'
 import { estBloquee, jouerCoup, nouvellePartie, peutPoser, type Forme, type Partie } from '../logique/puzzle'
 
 /** Couleurs des cases : la n° 0 est la brume (case vide), les autres sont les éclats de lumière. */
@@ -179,6 +180,7 @@ export default function MiniJeu({ record, onRecord }: Props) {
       jeu.partie = resultat.partie
       setScore(resultat.partie.score)
       if (resultat.partie.score > record) onRecord(resultat.partie.score)
+      son(resultat.effacees.length > 0 ? 'ligne' : 'pose')
 
       if (resultat.effacees.length > 0) {
         jeu.flash = resultat.effacees

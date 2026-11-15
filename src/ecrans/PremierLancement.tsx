@@ -19,22 +19,30 @@ interface LigneRecompense {
   palier: string
 }
 
-/** Heure actuelle au format attendu par le champ date-heure : « 2026-11-15T14:30 ». */
-function maintenantPourChamp(): string {
-  const decalage = new Date().getTimezoneOffset() * 60000
-  return new Date(Date.now() - decalage).toISOString().slice(0, 16)
+/** Une date au format attendu par le champ date-heure : « 2026-11-15T14:30 ». */
+function pourChamp(date: number): string {
+  const decalage = new Date(date).getTimezoneOffset() * 60000
+  return new Date(date - decalage).toISOString().slice(0, 16)
 }
 
-export default function PremierLancement({ onTermine }: { onTermine: (etat: Etat) => void }) {
+interface Props {
+  onTermine: (etat: Etat) => void
+  /** Si fourni, le formulaire sert à modifier ces données au lieu d'en créer. */
+  existant?: Etat
+  onAnnuler?: () => void
+}
+
+export default function PremierLancement({ onTermine, existant, onAnnuler }: Props) {
+  const ancien = existant?.profil
   // Chaque useState garde en mémoire la valeur d'un champ du formulaire.
-  const [produit, setProduit] = useState<Produit>('cigarettes')
-  const [conso, setConso] = useState('')
+  const [produit, setProduit] = useState<Produit>(ancien?.produit ?? 'cigarettes')
+  const [conso, setConso] = useState(ancien ? String(ancien.consoParJour) : '')
   const [parPaquet, setParPaquet] = useState(false)
-  const [prix, setPrix] = useState('')
+  const [prix, setPrix] = useState(ancien ? String(ancien.prixParUnite) : '')
   const [unitesParPaquet, setUnitesParPaquet] = useState('20')
-  const [arretMaintenant, setArretMaintenant] = useState(true)
-  const [dateArret, setDateArret] = useState(maintenantPourChamp)
-  const [raisons, setRaisons] = useState(['', '', ''])
+  const [arretMaintenant, setArretMaintenant] = useState(!ancien)
+  const [dateArret, setDateArret] = useState(() => pourChamp(ancien?.dateArret ?? Date.now()))
+  const [raisons, setRaisons] = useState(ancien?.raisons ?? ['', '', ''])
   const [recompenses, setRecompenses] = useState<LigneRecompense[]>(
     // Trois lignes au départ, avec les paliers 3, 7 et 14 jours.
     PALIERS_JOURS.slice(0, 3).map((p) => ({ nom: '', prix: '', palier: String(p) })),
@@ -49,15 +57,18 @@ export default function PremierLancement({ onTermine }: { onTermine: (etat: Etat
   function valider(evenement: FormEvent) {
     evenement.preventDefault() // empêche le rechargement de la page
     const prixSaisi = Number(prix)
+    const profil = {
+      produit,
+      consoParJour: Number(conso),
+      prixParUnite: parPaquet ? prixSaisi / Number(unitesParPaquet) : prixSaisi,
+      dateArret: arretMaintenant ? Date.now() : new Date(dateArret).getTime(),
+      raisons: raisons.map((r) => r.trim()),
+    }
+    // Modification : on ne change que le profil, tout le reste est conservé.
+    if (existant) return onTermine({ ...existant, profil })
     onTermine({
       version: 1,
-      profil: {
-        produit,
-        consoParJour: Number(conso),
-        prixParUnite: parPaquet ? prixSaisi / Number(unitesParPaquet) : prixSaisi,
-        dateArret: arretMaintenant ? Date.now() : new Date(dateArret).getTime(),
-        raisons: raisons.map((r) => r.trim()),
-      },
+      profil,
       recompenses: recompenses.map((r) => ({
         id: crypto.randomUUID(),
         nom: r.nom.trim(),
@@ -75,8 +86,12 @@ export default function PremierLancement({ onTermine }: { onTermine: (etat: Etat
 
   return (
     <main>
-      <h1>Bienvenue</h1>
-      <p className="discret">Quelques questions pour préparer ta cagnotte. Tout reste sur cet appareil.</p>
+      <h1>{existant ? 'Modifier mes données' : 'Bienvenue'}</h1>
+      <p className="discret">
+        {existant
+          ? 'La cagnotte, la série et l’île seront recalculées avec ces nouvelles valeurs.'
+          : 'Quelques questions pour préparer ta cagnotte. Tout reste sur cet appareil.'}
+      </p>
 
       <form onSubmit={valider}>
         <fieldset>
@@ -188,7 +203,8 @@ export default function PremierLancement({ onTermine }: { onTermine: (etat: Etat
           ))}
         </fieldset>
 
-        <fieldset>
+        {/* Les récompenses ne sont demandées qu'au premier lancement ; ensuite, elles ont leur propre écran. */}
+        <fieldset hidden={!!existant} disabled={!!existant}>
           <legend>Tes récompenses (3 au minimum)</legend>
           <p className="discret">
             Une récompense se débloque quand tu as tenu le nombre de jours ET que la cagnotte couvre son prix.
@@ -264,7 +280,12 @@ export default function PremierLancement({ onTermine }: { onTermine: (etat: Etat
           </button>
         </fieldset>
 
-        <button type="submit">Commencer</button>
+        <button type="submit">{existant ? 'Enregistrer' : 'Commencer'}</button>
+        {onAnnuler && (
+          <button type="button" className="secondaire" onClick={onAnnuler}>
+            Annuler
+          </button>
+        )}
       </form>
     </main>
   )

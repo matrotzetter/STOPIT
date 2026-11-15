@@ -62,7 +62,10 @@ commenter le code en français, ne pas supposer qu'il connaît les outils.
 - [x] (e) mini-jeu + cristaux (règles dans `src/logique/puzzle.ts`, dessin Canvas
   dans `src/ecrans/MiniJeu.tsx` ; le score ne nourrit que `recordPuzzle`, jamais
   l'énergie ni les cristaux ; entraînement accessible depuis l'écran Île)
-- [ ] (f) statistiques + réglages
+- [x] (f) statistiques + réglages (`src/logique/stats.ts` ; `lireEtat` dans
+  `src/stockage.ts` valide aussi bien le stockage que l'import ; le formulaire
+  `PremierLancement` sert aussi à modifier le profil via la prop `existant` ;
+  sons générés dans `src/sons.ts`, coupés par `etat.sons === false`)
 - [ ] (g) PWA + mise en ligne GitHub Pages (téléphone : iPhone)
 
 À chaque fin d'étape : lancer l'app, exécuter les tests, dire quoi tester, faire

@@ -278,6 +278,109 @@ button.choix-batiment {
   -webkit-user-select: none;
 }
 
+/* Statistiques : graphiques en barres */
+.carte h2 {
+  margin-top: 0;
+}
+
+.barres {
+  display: flex;
+  align-items: flex-end;
+  gap: 2px;
+  height: 140px;
+}
+
+.barres .colonne {
+  flex: 1;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  align-items: center;
+  min-width: 0;
+}
+
+.barres .piste {
+  flex: 1;
+  width: 100%;
+  display: flex;
+  align-items: flex-end;
+}
+
+.barres .barre {
+  width: 100%;
+  min-height: 2px; /* une ligne de base reste visible quand la valeur est zéro */
+  background: var(--accent);
+  border-radius: 4px 4px 0 0;
+}
+
+.barres .nombre,
+.barres .etiquette {
+  font-size: 0.7rem;
+  color: var(--discret);
+  height: 1.2em;
+  white-space: nowrap;
+}
+
+.ligne-declencheur {
+  display: grid;
+  grid-template-columns: 7.5em 1fr 2em;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.ligne-declencheur .barre {
+  height: 14px;
+  background: var(--accent);
+  border-radius: 0 4px 4px 0;
+}
+
+.ligne-declencheur .nombre {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Réglages */
+label.interrupteur {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 48px;
+  margin: 0;
+  color: var(--texte);
+  font-size: 1rem;
+}
+
+label.interrupteur input {
+  width: 24px;
+  height: 24px;
+  accent-color: var(--accent);
+}
+
+/* Une étiquette qui a l'apparence d'un bouton (pour choisir un fichier) */
+label.bouton {
+  display: grid;
+  place-items: center;
+  min-height: 56px;
+  margin: 12px 0 0;
+  border: 1px solid var(--bord);
+  border-radius: 14px;
+  color: var(--texte);
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+button.danger {
+  color: #ff8a80;
+  border-color: #ff8a80;
+}
+
+a {
+  color: var(--accent);
+}
+
 /* Formulaires */
 fieldset {
   border: 0;
