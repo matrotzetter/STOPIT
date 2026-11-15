@@ -186,6 +186,9 @@ export default function Ile({ etat, maj, aller }: Props) {
         </section>
       )}
 
+      <button className="secondaire" onClick={() => aller('entrainement')}>
+        S'entraîner au mini-jeu (sans gain)
+      </button>
       <button onClick={() => aller('accueil')}>Retour</button>
     </main>
   )

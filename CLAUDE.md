@@ -59,7 +59,9 @@ commenter le code en français, ne pas supposer qu'il connaît les outils.
 - [x] (c) récompenses + rechute (une récompense encaissée n'est plus modifiable ni
   supprimable : son prix resterait sinon dans la cagnotte)
 - [x] (d) île : grille, brume, énergie, bâtiments
-- [ ] (e) mini-jeu + cristaux
+- [x] (e) mini-jeu + cristaux (règles dans `src/logique/puzzle.ts`, dessin Canvas
+  dans `src/ecrans/MiniJeu.tsx` ; le score ne nourrit que `recordPuzzle`, jamais
+  l'énergie ni les cristaux ; entraînement accessible depuis l'écran Île)
 - [ ] (f) statistiques + réglages
 - [ ] (g) PWA + mise en ligne GitHub Pages (téléphone : iPhone)
 

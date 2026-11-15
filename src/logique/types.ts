@@ -61,4 +61,6 @@ export interface Etat {
   /** Jours où le check-in a été fait, au format « 2026-11-15 ». */
   checkins: string[]
   batiments: Batiment[]
+  /** Meilleur score au mini-jeu. Ne sert qu'à l'affichage : il ne rapporte rien. */
+  recordPuzzle?: number
 }

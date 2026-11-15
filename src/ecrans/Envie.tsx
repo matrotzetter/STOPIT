@@ -5,6 +5,7 @@ import type { Ecran } from '../App'
 import { CRISTAUX_PAR_ENVIE, DECLENCHEURS, DUREE_ENVIE_MS, EXPIRATION_S, INSPIRATION_S } from '../config'
 import type { Envie as EnvieNotee, Etat } from '../logique/types'
 import { useMaintenant } from '../useMaintenant'
+import MiniJeu from './MiniJeu'
 import Rechute from './Rechute'
 
 interface Props {
@@ -18,6 +19,7 @@ type Phase = 'choix' | 'minuteur' | 'victoire' | 'rechute'
 
 export default function Envie({ etat, maj, aller }: Props) {
   const [phase, setPhase] = useState<Phase>('choix')
+  const [mode, setMode] = useState<EnvieNotee['mode']>('jouer')
   const [intensite, setIntensite] = useState<number>()
   const [declencheur, setDeclencheur] = useState<string>()
   /** Heure de départ du minuteur. */
@@ -50,7 +52,7 @@ export default function Envie({ etat, maj, aller }: Props) {
 
   /** Ajoute l'envie à l'historique d'un état donné. */
   function avecEnvie(base: Etat, surmontee: boolean): Etat {
-    const envie: EnvieNotee = { date: Date.now(), surmontee, mode: 'respirer', intensite, declencheur }
+    const envie: EnvieNotee = { date: Date.now(), surmontee, mode, intensite, declencheur }
     return { ...base, envies: [...base.envies, envie] }
   }
 
@@ -61,7 +63,8 @@ export default function Envie({ etat, maj, aller }: Props) {
     return <Rechute etat={etat} maj={(avecRechute) => maj(avecEnvie(avecRechute, false))} aller={aller} />
   }
 
-  function demarrer() {
+  function demarrer(choix: EnvieNotee['mode']) {
+    setMode(choix)
     setDebut(Date.now())
     setPhase('minuteur')
   }
@@ -73,9 +76,9 @@ export default function Envie({ etat, maj, aller }: Props) {
         <h1>Une envie arrive</h1>
         <p className="discret">Elle va passer. Occupons les 5 prochaines minutes.</p>
 
-        <button onClick={demarrer}>Respirer</button>
-        <button className="secondaire espace" disabled>
-          Jouer (bientôt)
+        <button onClick={() => demarrer('jouer')}>Jouer</button>
+        <button className="secondaire espace" onClick={() => demarrer('respirer')}>
+          Respirer
         </button>
 
         <fieldset>
@@ -154,7 +157,7 @@ export default function Envie({ etat, maj, aller }: Props) {
         >
           Oui
         </button>
-        <button className="secondaire espace" onClick={demarrer}>
+        <button className="secondaire espace" onClick={() => demarrer(mode)}>
           Pas encore (5 minutes de plus)
         </button>
         <button className="secondaire" onClick={() => setPhase('rechute')}>
@@ -164,10 +167,27 @@ export default function Envie({ etat, maj, aller }: Props) {
     )
   }
 
-  // ---------- 2. Minuteur + respiration guidée ----------
   const secondesRestantes = Math.ceil(restantMs / 1000)
   const minutes = Math.floor(secondesRestantes / 60)
   const secondes = String(secondesRestantes % 60).padStart(2, '0')
+
+  // ---------- 2a. Minuteur + mini-jeu ----------
+  if (mode === 'jouer') {
+    return (
+      <main className="centre">
+        <p className="discret" role="timer" aria-label="Temps restant">
+          {minutes}:{secondes} · « {raison} »
+        </p>
+        {/* Le score ne sert qu'au record personnel : il ne rapporte ni énergie ni cristaux. */}
+        <MiniJeu record={etat.recordPuzzle ?? 0} onRecord={(score) => maj({ ...etat, recordPuzzle: score })} />
+        <button className="secondaire" onClick={() => aller('accueil')}>
+          Quitter
+        </button>
+      </main>
+    )
+  }
+
+  // ---------- 2b. Minuteur + respiration guidée ----------
 
   // Où en est-on dans le cycle inspiration + expiration ?
   const dansLeCycle = (ecouleMs / 1000) % (INSPIRATION_S + EXPIRATION_S)

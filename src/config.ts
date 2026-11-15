@@ -75,6 +75,36 @@ export const CATALOGUE: ModeleBatiment[] = [
   { id: 'statue', nom: 'Statue', emoji: '🗿', energie: 0, cristaux: 150, zoneMin: 4 },
 ]
 
+// ---------- Le mini-jeu ----------
+
+/** Nombre de cases par côté de la grille du puzzle. */
+export const PUZZLE_TAILLE = 8
+
+/** Points gagnés par case posée, et par ligne ou colonne complétée. */
+export const POINTS_PAR_CASE = 1
+export const POINTS_PAR_LIGNE = 10
+
+/**
+ * Les formes du puzzle, dessinées en texte : « # » = une case pleine, « . » = vide.
+ * Elles sont volontairement petites (4 cases au plus) pour que le jeu reste doux.
+ */
+export const DESSINS_FORMES = [
+  ['#'],
+  ['##'],
+  ['#', '#'],
+  ['###'],
+  ['#', '#', '#'],
+  ['##', '##'],
+  ['#.', '##'],
+  ['.#', '##'],
+  ['##', '#.'],
+  ['##', '.#'],
+  ['####'],
+  ['#', '#', '#', '#'],
+  ['###', '.#.'],
+  ['.#.', '###'],
+]
+
 // ---------- Les cristaux ----------
 
 /** Cristaux gagnés pour chaque check-in quotidien. */
