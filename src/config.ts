@@ -115,3 +115,20 @@ export const CRISTAUX_PAR_ENVIE = 10
 
 /** Cristaux gagnés chaque fois qu'un palier de jours cumulés est atteint. */
 export const CRISTAUX_PAR_PALIER = 50
+
+// ---------- Avatars du mini-jeu ----------
+
+/** Coiffures proposées : identifiant enregistré → nom affiché. */
+export const COIFFURES: Record<string, string> = {
+  courts: 'Courts',
+  milongs: 'Mi-longs',
+  longs: 'Longs',
+  chignon: 'Chignon',
+  chauve: 'Chauve',
+}
+
+/** Les deux personnages tant qu'on ne les a pas réglés (Réglages → Mes avatars). */
+export const AVATARS_DEFAUT = [
+  { nom: 'Moi', peau: '#f0c9a4', cheveux: '#5b3a24', pull: '#5f8f7a', coiffure: 'courts' },
+  { nom: 'Ma copine', peau: '#f0c9a4', cheveux: '#8a5a33', pull: '#d98c8c', coiffure: 'longs' },
+]

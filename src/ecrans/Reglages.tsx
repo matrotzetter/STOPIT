@@ -44,6 +44,9 @@ export default function Reglages({ etat, maj, aller, reinitialiser }: Props) {
         <button className="secondaire" onClick={() => aller('recompenses')}>
           Modifier mes récompenses
         </button>
+        <button className="secondaire" onClick={() => aller('avatars')}>
+          Mes avatars
+        </button>
       </section>
 
       <section className="carte">

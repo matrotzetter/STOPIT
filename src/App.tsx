@@ -1,6 +1,8 @@
 // Composant racine : garde les données en mémoire et choisit l'écran affiché.
 import { useState } from 'react'
+import { avatarsDe } from './avatar'
 import Accueil from './ecrans/Accueil'
+import Avatars from './ecrans/Avatars'
 import Envie from './ecrans/Envie'
 import Ile from './ecrans/Ile'
 import MiniJeu from './ecrans/MiniJeu'
@@ -24,6 +26,7 @@ export type Ecran =
   | 'stats'
   | 'reglages'
   | 'profil'
+  | 'avatars'
 
 export default function App() {
   // « etat » contient toutes les données. null = premier lancement.
@@ -53,6 +56,7 @@ export default function App() {
   if (ecran === 'recompenses') return <Recompenses {...props} />
   if (ecran === 'ile') return <Ile {...props} />
   if (ecran === 'stats') return <Stats {...props} />
+  if (ecran === 'avatars') return <Avatars {...props} />
   if (ecran === 'reglages') {
     return (
       <Reglages
@@ -83,7 +87,7 @@ export default function App() {
       <main className="centre">
         <h1>Entraînement</h1>
         <p className="discret">Pour le plaisir : ici, jouer ne rapporte ni énergie ni cristaux.</p>
-        <MiniJeu record={etat.recordPuzzle ?? 0} onRecord={(score) => maj({ ...etat, recordPuzzle: score })} />
+        <MiniJeu avatars={avatarsDe(etat)} record={etat.recordPuzzle ?? 0} onRecord={(score) => maj({ ...etat, recordPuzzle: score })} />
         <button className="secondaire" onClick={() => setEcran('ile')}>
           Retour
         </button>

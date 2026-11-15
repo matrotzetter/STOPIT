@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import type { Ecran } from '../App'
 import { CRISTAUX_PAR_ENVIE, DECLENCHEURS, DUREE_ENVIE_MS, EXPIRATION_S, INSPIRATION_S } from '../config'
 import type { Envie as EnvieNotee, Etat } from '../logique/types'
+import { avatarsDe } from '../avatar'
 import { son } from '../sons'
 import { useMaintenant } from '../useMaintenant'
 import MiniJeu from './MiniJeu'
@@ -181,7 +182,7 @@ export default function Envie({ etat, maj, aller }: Props) {
           {minutes}:{secondes} · « {raison} »
         </p>
         {/* Le score ne sert qu'au record personnel : il ne rapporte ni énergie ni cristaux. */}
-        <MiniJeu record={etat.recordPuzzle ?? 0} onRecord={(score) => maj({ ...etat, recordPuzzle: score })} />
+        <MiniJeu avatars={avatarsDe(etat)} record={etat.recordPuzzle ?? 0} onRecord={(score) => maj({ ...etat, recordPuzzle: score })} />
         <button className="secondaire" onClick={() => aller('accueil')}>
           Quitter
         </button>

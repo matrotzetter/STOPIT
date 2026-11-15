@@ -52,6 +52,19 @@ export interface Batiment {
   niveau: number
 }
 
+/** L'apparence d'un petit personnage du mini-jeu. Purement décoratif. */
+export interface Avatar {
+  nom: string
+  /** Couleurs au format « #rrggbb ». */
+  peau: string
+  cheveux: string
+  pull: string
+  /** Une des COIFFURES de config.ts. */
+  coiffure: string
+  lunettes?: boolean
+  barbe?: boolean
+}
+
 export interface Etat {
   version: 1
   profil: Profil
@@ -65,4 +78,6 @@ export interface Etat {
   recordPuzzle?: number
   /** false = sons coupés. Absent = sons activés. */
   sons?: boolean
+  /** Les deux personnages du mini-jeu. Absent = ceux par défaut (AVATARS_DEFAUT). */
+  avatars?: Avatar[]
 }

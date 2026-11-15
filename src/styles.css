@@ -462,3 +462,31 @@ textarea {
 .choix input {
   accent-color: var(--accent);
 }
+
+/* Réglage des avatars */
+canvas.apercu-avatar {
+  display: block;
+  width: 120px;
+  height: 120px;
+  margin: 0 auto 8px;
+}
+
+.couleurs {
+  display: flex;
+  gap: 12px;
+}
+
+.couleurs label {
+  flex: 1;
+}
+
+input[type='color'] {
+  display: block;
+  width: 100%;
+  height: 48px;
+  margin-top: 4px;
+  padding: 2px;
+  border: 1px solid var(--bord);
+  border-radius: 12px;
+  background: var(--fond);
+}

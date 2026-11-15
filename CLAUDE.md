@@ -74,5 +74,11 @@ commenter le code en français, ne pas supposer qu'il connaît les outils.
   `.github/workflows/deploy.yml` teste, construit et publie à chaque push sur main.
   Reste à faire par l'utilisateur : créer le dépôt GitHub, pousser, activer Pages.
 
+- [x] (h) mini-jeu en volume + ambiance cosy + avatars. Le plateau est vu de biais
+  (`APLATI` dans `MiniJeu.tsx`), sans bibliothèque 3D. Les deux avatars
+  (`etat.avatars`, facultatif) sont dessinés par `src/avatar.ts` et réglés dans
+  `src/ecrans/Avatars.tsx` (Réglages → Mes avatars) ; `avatarsDe` complète ce qui
+  manque avec `AVATARS_DEFAUT`. Purement décoratifs.
+
 À chaque fin d'étape : lancer l'app, exécuter les tests, dire quoi tester, faire
 un commit, attendre le retour de l'utilisateur.
