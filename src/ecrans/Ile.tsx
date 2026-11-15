@@ -1,7 +1,7 @@
 // Écran « Île » : la carte, les ressources, et la construction sur les cases dégagées.
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import type { Ecran } from '../App'
-import { avatarsDe } from '../avatar'
+import { ANIME, HAUTEUR_AVATAR, avatarsDe, balancement, dessinerAvatar } from '../avatar'
 import { CATALOGUE, NIVEAU_MAX, PALIERS_JOURS } from '../config'
 import { JOUR_MS, tempsCumuleMs } from '../logique/calculs'
 import {
@@ -19,44 +19,167 @@ import {
   soldeCristaux,
 } from '../logique/ile'
 import type { Etat } from '../logique/types'
+import { COULEURS_MOTIFS, NUAGE, dessinerMotif } from '../pixels'
 import { useMaintenant } from '../useMaintenant'
-import { Apercu } from './Avatars'
 
 /** Couleur du sol de chaque zone, de la plage (zone 1) au sommet (zone 6). */
 const COULEURS_ZONES = ['#d9c58a', '#a9c46c', '#7fb069', '#5a9a5f', '#8d9a8a', '#c9d3da']
 
-// L'île est dessinée en « 3D isométrique » : on la regarde de biais et d'en haut.
-// Chaque case est un losange posé sur un bloc de terre, d'autant plus haut que
-// sa zone est proche du sommet. Les mesures sont dans les unités du dessin.
+// L'île est dessinée en « pixel art isométrique » : on la regarde de biais et d'en
+// haut. Chaque case est un losange posé sur un bloc de terre, d'autant plus haut
+// que sa zone est proche du sommet. Le dessin est fait en tout petit (160 pixels
+// de large) puis agrandi sans lissage : toutes les mesures sont en gros pixels.
 /** Largeur et hauteur du losange d'une case. */
 const L = 20
 const H = 10
 /** Hauteur gagnée à chaque zone, et épaisseur du socle de l'île. */
-const MARCHE = 2.2
+const MARCHE = 2
 const SOCLE = 3
 /** Largeur du dessin, et position verticale de la case du fond. */
 const LARGEUR = TAILLE * L
 const HAUT = 4 + 5 * MARCHE
-/** Haut de la plage, sous l'île. */
+/** Haut de la plage, sous l'île, et hauteur totale du dessin. */
 const PLAGE = HAUT + TAILLE * H + SOCLE + 2
-
-/** Position des étoiles dans le ciel, au-dessus et autour de l'île. */
-const ETOILES = [
-  [8, 34], [40, 8], [58, 20], [12, 52], [34, 30], [120, 6], [140, 22], [152, 10], [104, 12], [150, 96], [10, 92], [28, 104],
-]
-
-/** Position des vagues (sur la mer, de part et d'autre de l'île) et des lucioles (au-dessus de l'île). */
-const VAGUES = [
-  [6, 72], [20, 84], [4, 60], [128, 88], [142, 76], [116, 96], [44, 96],
-]
-const LUCIOLES = [
-  [50, 60], [78, 46], [96, 70], [66, 80], [112, 52], [84, 30],
-]
+const HAUTEUR = PLAGE + HAUTEUR_AVATAR + 3
 
 /** Les cases, du fond vers l'avant : celles de devant sont dessinées en dernier et cachent les autres. */
 const ORDRE = ZONE_DE_CASE.map((_, i) => i).sort(
   (a, b) => (a % TAILLE) + Math.floor(a / TAILLE) - ((b % TAILLE) + Math.floor(b / TAILLE)),
 )
+
+/** Où se trouve la case n° i : x = son milieu, y = le haut de son losange. */
+function positionCase(i: number) {
+  const colonne = i % TAILLE
+  const ligne = Math.floor(i / TAILLE)
+  return {
+    x: LARGEUR / 2 + ((colonne - ligne) * L) / 2,
+    y: HAUT + ((colonne + ligne) * H) / 2 - ZONE_DE_CASE[i] * MARCHE,
+  }
+}
+
+/** Couleurs du ciel de nuit, de haut en bas, jusqu'à la mer. */
+const CIEL = ['#2a2052', '#2b2a5e', '#2a3868', '#274a73', '#23597f', '#1f6f8f']
+const couleurCiel = (y: number) => CIEL[Math.min(CIEL.length - 1, Math.floor((y / PLAGE) * CIEL.length))]
+
+/** Position des étoiles, des vagues et des lucioles. */
+const ETOILES = [
+  [8, 34], [40, 8], [58, 20], [12, 52], [34, 30], [120, 6], [140, 22], [152, 10], [104, 12], [150, 96], [10, 92], [28, 104],
+]
+const VAGUES = [
+  [6, 72], [20, 84], [4, 60], [128, 88], [142, 76], [116, 95], [44, 95],
+]
+const LUCIOLES = [
+  [50, 60], [78, 46], [96, 70], [66, 80], [112, 52], [84, 30],
+]
+
+/** Dessine toute l'île dans le canvas. t = l'heure en millisecondes, pour les animations. */
+function dessinerIle(
+  ctx: CanvasRenderingContext2D,
+  etat: Etat,
+  degagees: boolean[],
+  selection: number | null | undefined,
+  t: number,
+) {
+  const rect = (x: number, y: number, l: number, h: number, couleur: string) => {
+    ctx.fillStyle = couleur
+    ctx.fillRect(Math.round(x), Math.round(y), l, h)
+  }
+
+  // Le ciel et la mer, par bandes de couleur
+  for (let y = 0; y < PLAGE; y++) rect(0, y, LARGEUR, 1, couleurCiel(y))
+  ETOILES.forEach(([x, y], n) => Math.sin(t / 700 + n * 2) > -0.4 && rect(x, y, 1, 1, '#ffffff'))
+  // La lune : un disque clair, mordu par un disque de la couleur du ciel (un croissant)
+  for (let dy = -6; dy <= 6; dy++) {
+    const demi = Math.round(Math.sqrt(36 - dy * dy))
+    rect(22 - demi, 16 + dy, demi * 2, 1, '#fff3c9')
+  }
+  for (let dy = -5; dy <= 5; dy++) {
+    const demi = Math.round(Math.sqrt(25 - dy * dy))
+    rect(26 - demi, 14 + dy, demi * 2, 1, couleurCiel(14 + dy))
+  }
+  VAGUES.forEach(([x, y], n) => {
+    const glisse = Math.round(Math.sin(t / 900 + n) * 2)
+    rect(x + glisse, y, 4, 1, 'rgba(255, 255, 255, 0.35)')
+    rect(x + glisse + 4, y + 1, 3, 1, 'rgba(255, 255, 255, 0.35)')
+  })
+
+  // Les cases, du fond vers l'avant
+  for (const i of ORDRE) {
+    const zone = ZONE_DE_CASE[i]
+    const { x, y } = positionCase(i)
+    const profondeur = zone * MARCHE + SOCLE
+    // Les deux flancs de terre : des colonnes d'un pixel, qui suivent le bord du losange.
+    for (let n = 0; n < L / 2; n++) {
+      const haut = y + H / 2 + 1 + Math.floor(n / 2)
+      rect(x - L / 2 + n, haut, 1, profondeur, '#8a6b4a') // flanc gauche
+      rect(x + L / 2 - 1 - n, haut, 1, profondeur, '#6a5038') // flanc droit
+    }
+    // Le dessus : un losange, ligne par ligne (4, 8, 12, 16, 20 pixels puis l'inverse).
+    const couleur = degagees[i] ? COULEURS_ZONES[zone] : ['#b8c2cc', '#aeb9c4', '#c2cbd4'][i % 3]
+    for (let dy = 0; dy < H; dy++) {
+      const largeur = 4 * (dy < H / 2 ? dy + 1 : H - dy)
+      rect(x - largeur / 2, y + dy, largeur, 1, couleur)
+      // Le bord avant du losange est un peu plus sombre : il marque l'arête.
+      if (dy >= H / 2) {
+        rect(x - largeur / 2, y + dy, 2, 1, 'rgba(0, 0, 0, 0.18)')
+        rect(x + largeur / 2 - 2, y + dy, 2, 1, 'rgba(0, 0, 0, 0.18)')
+      }
+    }
+    if (selection === i) {
+      // Case sélectionnée : son contour en blanc.
+      for (let dy = 0; dy < H; dy++) {
+        const largeur = 4 * (dy < H / 2 ? dy + 1 : H - dy)
+        rect(x - largeur / 2, y + dy, 2, 1, '#ffffff')
+        rect(x + largeur / 2 - 2, y + dy, 2, 1, '#ffffff')
+      }
+    }
+    if (!degagees[i]) {
+      // Brume : un petit nuage posé sur la case, qui monte et descend lentement.
+      dessinerMotif(ctx, NUAGE, x - 6, y + 1 + Math.round(Math.sin(t / 1500 + i)), COULEURS_MOTIFS)
+      continue
+    }
+    // Deux brins sombres pour donner du grain au sol
+    rect(x - 4 + ((i * 5) % 8), y + 4 + (i % 3), 1, 1, 'rgba(0, 0, 0, 0.18)')
+    rect(x + 3 - ((i * 3) % 7), y + 3 + ((i * 2) % 4), 1, 1, 'rgba(255, 255, 255, 0.2)')
+    const batiment = etat.batiments.find((b) => b.case === i)
+    const m = batiment && modele(batiment.type)
+    if (m) {
+      // Le bâtiment est debout sur la case ; il grandit avec son niveau. Dessiné tout petit,
+      // l'emoji devient lui aussi pixelisé une fois agrandi.
+      rect(x - 4, y + H / 2 + 1, 8, 1, 'rgba(0, 0, 0, 0.25)')
+      ctx.font = `${12 + batiment.niveau * 2}px sans-serif`
+      ctx.textAlign = 'center'
+      ctx.textBaseline = 'bottom'
+      ctx.fillStyle = '#000' // couleur opaque : sinon l'emoji hériterait de la transparence de l'ombre
+      ctx.fillText(m.emoji, x, y + H / 2 + 4)
+    }
+  }
+
+  LUCIOLES.forEach(([x, y], n) => {
+    if (Math.sin(t / 800 + n * 3) < -0.3) return // elle s'éteint par moments
+    rect(x + Math.sin(t / 1100 + n) * 4, y + Math.cos(t / 1300 + n * 2) * 3, 1, 1, '#ffe08a')
+  })
+
+  // La plage : les avatars aux deux bouts, et un trophée par récompense encaissée
+  rect(0, PLAGE, LARGEUR, HAUTEUR - PLAGE, '#e8d9a8')
+  rect(0, PLAGE, LARGEUR, 1, '#f6efd2')
+  for (let n = 0; n < 24; n++) rect((n * 37) % LARGEUR, PLAGE + 3 + ((n * 11) % 18), 1, 1, '#d6c48c') // grains de sable
+  const monuments = etat.recompenses.filter((r) => r.encaisseeLe)
+  ctx.font = '10px sans-serif'
+  ctx.textAlign = 'center'
+  ctx.textBaseline = 'bottom'
+  // 8 trophées, puis « +N » s'il y en a davantage.
+  monuments.slice(0, 8).forEach((_, n) => ctx.fillText('🏆', 36 + n * 11, HAUTEUR - 4))
+  if (monuments.length > 8) {
+    ctx.fillStyle = '#3a3320'
+    ctx.fillText(`+${monuments.length - 8}`, 36 + 8 * 11, HAUTEUR - 5)
+  }
+  avatarsDe(etat).forEach((avatar, n) => {
+    const x = n === 0 ? 12 : LARGEUR - 12
+    rect(x - 6, HAUTEUR - 3, 12, 1, 'rgba(0, 0, 0, 0.2)')
+    dessinerAvatar(ctx, avatar, x, HAUTEUR - 2, HAUTEUR_AVATAR, false, balancement(t, n * 2) * 2)
+  })
+}
 
 interface PropsCarte {
   etat: Etat
@@ -67,103 +190,54 @@ interface PropsCarte {
   onCase?: (numCase: number) => void
 }
 
-/** Le dessin de l'île (SVG), avec les deux avatars sur la plage. Utilisé ici et sur l'accueil. */
+/**
+ * L'île. Le dessin est dans un <canvas> ; par-dessus, un SVG invisible porte une
+ * zone par case : c'est lui qui reçoit le doigt, le clavier et le lecteur d'écran.
+ * Utilisé ici et sur l'accueil.
+ */
 export function CarteIle({ etat, maintenant, selection, onCase }: PropsCarte) {
+  const canvasRef = useRef<HTMLCanvasElement>(null)
   const degagees = casesDegagees(etat, maintenant)
-  const monuments = etat.recompenses.filter((r) => r.encaisseeLe)
+
+  // Redessine à chaque changement, et en continu pour les animations.
+  useEffect(() => {
+    const ctx = canvasRef.current!.getContext('2d')!
+    let image = 0
+    const boucle = () => {
+      dessinerIle(ctx, etat, degagees, selection, ANIME ? performance.now() : 0)
+      // requestAnimationFrame : « rappelle-moi juste avant la prochaine image affichée ».
+      if (ANIME) image = requestAnimationFrame(boucle)
+    }
+    boucle()
+    return () => cancelAnimationFrame(image)
+  })
 
   return (
     <span className="ile-cadre">
-      <svg className="ile" viewBox={`0 0 ${LARGEUR} ${PLAGE + 22}`} role="group" aria-label="Carte de l'île">
-        {/* Le décor : ciel de nuit qui descend vers la mer, lune et étoiles. */}
-        <defs>
-          <linearGradient id="ciel" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0" stopColor="#2a2052" />
-            <stop offset="0.45" stopColor="#274a73" />
-            <stop offset="1" stopColor="#1f6f8f" />
-          </linearGradient>
-        </defs>
-        <rect width={LARGEUR} height={PLAGE + 22} fill="url(#ciel)" />
-        <circle cx={22} cy={16} r={7} fill="#fff3c9" />
-        <circle cx={25} cy={14} r={6} fill="#2a2256" />
-        {ETOILES.map(([ex, ey], n) => (
-          <circle key={n} className="etoile" cx={ex} cy={ey} r={0.6} fill="#fff" style={{ animationDelay: `${n * 0.4}s` }} />
-        ))}
+      <canvas ref={canvasRef} className="ile" width={LARGEUR} height={HAUTEUR} aria-hidden="true" />
+      <svg className="ile" viewBox={`0 0 ${LARGEUR} ${HAUTEUR}`} role="group" aria-label="Carte de l'île">
         {ORDRE.map((i) => {
-          const colonne = i % TAILLE
-          const ligne = Math.floor(i / TAILLE)
-          const zone = ZONE_DE_CASE[i]
-          // (x, y) = le coin du fond du losange, relevé selon la hauteur de la zone.
-          const x = LARGEUR / 2 + ((colonne - ligne) * L) / 2
-          const y = HAUT + ((colonne + ligne) * H) / 2 - zone * MARCHE
-          const bas = y + H / 2 + zone * MARCHE + SOCLE // niveau de la mer, sous les coins gauche et droit
-          const dessus = `${x},${y} ${x + L / 2},${y + H / 2} ${x},${y + H} ${x - L / 2},${y + H / 2}`
+          const { x, y } = positionCase(i)
+          const bas = y + H + ZONE_DE_CASE[i] * MARCHE + SOCLE
           const batiment = etat.batiments.find((b) => b.case === i)
           const m = batiment && modele(batiment.type)
           const description = !degagees[i] ? 'brume' : m ? m.nom : 'case libre'
-          const taille = 7 + (batiment?.niveau ?? 0) * 1.5
           return (
-            <g
+            // Une zone transparente de la forme de la case (dessus + flancs).
+            <polygon
               key={i}
+              points={`${x},${y} ${x + L / 2},${y + H / 2} ${x + L / 2},${bas - H / 2} ${x},${bas} ${x - L / 2},${bas - H / 2} ${x - L / 2},${y + H / 2}`}
+              fill="transparent"
               // Les 4 lignes suivantes rendent la case utilisable au clavier et au lecteur d'écran.
               role={onCase ? 'button' : undefined}
               tabIndex={onCase ? 0 : undefined}
-              aria-label={`Ligne ${ligne + 1}, colonne ${colonne + 1} : ${description}`}
+              aria-label={`Ligne ${Math.floor(i / TAILLE) + 1}, colonne ${(i % TAILLE) + 1} : ${description}`}
               onKeyDown={onCase && ((e) => e.key === 'Enter' && onCase(i))}
               onClick={onCase && (() => onCase(i))}
-            >
-              {/* Les deux flancs de terre visibles, puis le dessus. */}
-              <polygon points={`${x - L / 2},${y + H / 2} ${x},${y + H} ${x},${bas + H / 2} ${x - L / 2},${bas}`} fill="#8a6b4a" />
-              <polygon points={`${x + L / 2},${y + H / 2} ${x},${y + H} ${x},${bas + H / 2} ${x + L / 2},${bas}`} fill="#6a5038" />
-              <polygon points={dessus} fill={COULEURS_ZONES[zone]} stroke="rgba(0,0,0,0.25)" strokeWidth={0.3} />
-              {degagees[i] ? (
-                m && (
-                  <>
-                    <ellipse cx={x} cy={y + H / 2 + 1} rx={taille * 0.4} ry={taille * 0.15} fill="rgba(0,0,0,0.25)" />
-                    {/* Le bâtiment est debout sur la case ; il grandit avec son niveau. */}
-                    <text x={x} y={y + H / 2 - taille * 0.3} fontSize={taille} textAnchor="middle" dominantBaseline="central">
-                      {m.emoji}
-                    </text>
-                  </>
-                )
-              ) : (
-                // Brume : un voile gris sur la case et un petit nuage posé dessus.
-                <>
-                  <polygon points={dessus} fill="#b8c2cc" opacity={0.8 + ((i * 7) % 4) * 0.05} />
-                  <ellipse cx={x} cy={y + H / 2 - 1.5} rx={L * 0.32} ry={H * 0.35} fill="#fff" opacity={0.35} />
-                </>
-              )}
-              {selection === i && <polygon points={dessus} fill="none" stroke="#fff" strokeWidth={1} />}
-            </g>
+            />
           )
         })}
-
-        {/* Des vagues claires sur la mer et des lucioles au-dessus de l'île. */}
-        {VAGUES.map(([vx, vy], n) => (
-          <path key={n} className="vague" d={`M${vx},${vy} q3,-1.5 6,0 t6,0`} style={{ animationDelay: `${n * 0.7}s` }} />
-        ))}
-        {LUCIOLES.map(([lx, ly], n) => (
-          <circle key={n} className="luciole" cx={lx} cy={ly} r={0.9} style={{ animationDelay: `${n * 1.3}s` }} />
-        ))}
-
-        {/* La plage : les avatars aux deux bouts, et un trophée par récompense encaissée. */}
-        <rect x={0} y={PLAGE} width={LARGEUR} height={22} fill="#e8d9a8" />
-        <rect x={0} y={PLAGE} width={LARGEUR} height={1.5} fill="#f6efd2" />
-        {/* 8 trophées, puis « +N » s'il y en a davantage. */}
-        {monuments.slice(0, 8).map((r, i) => (
-          <text key={r.id} x={36 + i * 11} y={PLAGE + 12} fontSize={9} textAnchor="middle" dominantBaseline="central">
-            🏆<title>{r.nom}</title>
-          </text>
-        ))}
-        {monuments.length > 8 && (
-          <text x={36 + 8 * 11} y={PLAGE + 12} fontSize={5} fill="#3a3320" textAnchor="middle" dominantBaseline="central">
-            +{monuments.length - 8}
-          </text>
-        )}
       </svg>
-      {avatarsDe(etat).map((avatar, i) => (
-        <Apercu key={i} avatar={avatar} decalage={i * 2} className={`avatar-ile ${i === 0 ? 'gauche' : 'droite'}`} />
-      ))}
     </span>
   )
 }

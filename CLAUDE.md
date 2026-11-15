@@ -97,5 +97,14 @@ commenter le code en français, ne pas supposer qu'il connaît les outils.
   Animations (avatars, feu, braises, lucioles, vagues, guirlande) coupées par
   `ANIME` / `prefers-reduced-motion`. Le mini-jeu se redessine à chaque image.
 
+- [x] (l) île et mini-jeu en pixel art : chacun est dessiné dans un `<canvas>` de
+  très basse résolution (160 px de large pour l'île, ~115 pour le jeu), agrandi par
+  `image-rendering: pixelated`. Tout se mesure en « gros pixels » entiers, avec
+  `fillRect` uniquement. Motifs partagés (feu, nuage, flèche) dans `src/pixels.ts`.
+  Sur l'île, un SVG transparent posé par-dessus porte une zone par case : clics,
+  clavier et lecteur d'écran passent par lui. Les bâtiments restent des emojis,
+  pixelisés par l'agrandissement (penser à remettre un `fillStyle` opaque avant
+  `fillText`, sinon l'emoji devient transparent).
+
 À chaque fin d'étape : lancer l'app, exécuter les tests, dire quoi tester, faire
 un commit, attendre le retour de l'utilisateur.
