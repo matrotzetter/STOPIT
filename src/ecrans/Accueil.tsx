@@ -1,7 +1,7 @@
 // Écran d'accueil : temps écoulé, cagnotte, prochaine récompense,
 // check-in quotidien et bouton « J'ai une envie ».
 import type { Ecran } from '../App'
-import { NOM_UNITE, chf, duree } from '../format'
+import { NOM_UNITE, chf, duree, texteManque } from '../format'
 import {
   cagnotte,
   cleJour,
@@ -27,6 +27,7 @@ export default function Accueil({ etat, maj, aller }: Props) {
   const prochaine = prochaineRecompense(etat, maintenant)
   const aujourdhui = cleJour(maintenant)
   const checkinFait = etat.checkins.includes(aujourdhui)
+  const rechuteAujourdhui = etat.rechutes.some((r) => cleJour(r.date) === aujourdhui)
 
   return (
     <main className="avec-bouton-fixe">
@@ -75,21 +76,20 @@ export default function Accueil({ etat, maj, aller }: Props) {
           <p className="discret">
             {prochaine.progression >= 1
               ? 'Débloquée !'
-              : // On n'affiche que ce qui manque vraiment (jours, CHF, ou les deux).
-                'Il manque ' +
-                [
-                  prochaine.joursManquants > 0 && `${Math.ceil(prochaine.joursManquants)} j`,
-                  prochaine.chfManquants > 0 && chf(prochaine.chfManquants),
-                ]
-                  .filter(Boolean)
-                  .join(' et ')}
+              : texteManque(prochaine.joursManquants, prochaine.chfManquants)}
           </p>
         </section>
       )}
 
+      <button className="secondaire espace" onClick={() => aller('recompenses')}>
+        Mes récompenses
+      </button>
+
       {!pasEncoreArrete && (
         <section className="carte">
-          {checkinFait ? (
+          {rechuteAujourdhui ? (
+            <p>Rechute notée aujourd'hui. Tu repars de là.</p>
+          ) : checkinFait ? (
             <p>✅ Check-in fait aujourd'hui · 💎 {cristaux(etat, maintenant)} cristaux</p>
           ) : (
             <>

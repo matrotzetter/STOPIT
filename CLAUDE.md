@@ -45,7 +45,8 @@ commenter le code en français, ne pas supposer qu'il connaît les outils.
 - [x] (a) structure + premier lancement + accueil
 - [x] (b) mode Envie avec respiration guidée (option « Jouer » désactivée jusqu'à
   l'étape e ; le minuteur se calcule depuis l'heure de départ)
-- [ ] (c) récompenses + rechute
+- [x] (c) récompenses + rechute (une récompense encaissée n'est plus modifiable ni
+  supprimable : son prix resterait sinon dans la cagnotte)
 - [ ] (d) île : grille, brume, énergie, bâtiments
 - [ ] (e) mini-jeu + cristaux
 - [ ] (f) statistiques + réglages

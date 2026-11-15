@@ -3,11 +3,13 @@ import { useState } from 'react'
 import Accueil from './ecrans/Accueil'
 import Envie from './ecrans/Envie'
 import PremierLancement from './ecrans/PremierLancement'
+import Rechute from './ecrans/Rechute'
+import Recompenses from './ecrans/Recompenses'
 import type { Etat } from './logique/types'
 import { charger, sauvegarder } from './stockage'
 
 /** Les écrans de l'app (d'autres arriveront aux étapes suivantes). */
-export type Ecran = 'accueil' | 'envie' | 'rechute'
+export type Ecran = 'accueil' | 'envie' | 'rechute' | 'recompenses'
 
 export default function App() {
   // « etat » contient toutes les données. null = premier lancement.
@@ -21,16 +23,11 @@ export default function App() {
   }
 
   if (!etat) return <PremierLancement onTermine={maj} />
-  if (ecran === 'accueil') return <Accueil etat={etat} maj={maj} aller={setEcran} />
 
-  if (ecran === 'envie') return <Envie etat={etat} maj={maj} aller={setEcran} />
-
-  // Écran pas encore construit (étape c).
-  return (
-    <main>
-      <h1>Rechute</h1>
-      <p className="discret">Cet écran arrive à la prochaine étape.</p>
-      <button onClick={() => setEcran('accueil')}>Retour</button>
-    </main>
-  )
+  // Les mêmes informations sont transmises à tous les écrans.
+  const props = { etat, maj, aller: setEcran }
+  if (ecran === 'envie') return <Envie {...props} />
+  if (ecran === 'rechute') return <Rechute {...props} />
+  if (ecran === 'recompenses') return <Recompenses {...props} />
+  return <Accueil {...props} />
 }

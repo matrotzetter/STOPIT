@@ -247,9 +247,24 @@ label {
   font-size: 0.9rem;
 }
 
+h2 {
+  font-size: 1.15rem;
+  margin: 24px 0 8px;
+}
+
+.espace-haut {
+  margin-top: 12px;
+}
+
+textarea {
+  padding-top: 12px !important;
+  resize: vertical;
+}
+
 input[type='text'],
 input[type='number'],
-input[type='datetime-local'] {
+input[type='datetime-local'],
+textarea {
   display: block;
   width: 100%;
   min-height: 52px;
