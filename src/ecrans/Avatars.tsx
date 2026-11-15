@@ -15,7 +15,7 @@ interface Props {
 const APERCU = 120
 
 /** Petit dessin de l'avatar, refait à chaque changement. */
-function Apercu({ avatar }: { avatar: Avatar }) {
+export function Apercu({ avatar, className = 'apercu-avatar' }: { avatar: Avatar; className?: string }) {
   const ref = useRef<HTMLCanvasElement>(null)
   useEffect(() => {
     const ctx = ref.current!.getContext('2d')!
@@ -23,7 +23,7 @@ function Apercu({ avatar }: { avatar: Avatar }) {
     ctx.clearRect(0, 0, APERCU * 2, APERCU * 2)
     dessinerAvatar(ctx, avatar, APERCU, APERCU * 2 - 8, APERCU * 2 - 30)
   })
-  return <canvas ref={ref} className="apercu-avatar" width={APERCU * 2} height={APERCU * 2} aria-hidden="true" />
+  return <canvas ref={ref} className={className}width={APERCU * 2} height={APERCU * 2} aria-hidden="true" />
 }
 
 export default function Avatars({ etat, maj, aller }: Props) {
@@ -80,6 +80,10 @@ export default function Avatars({ etat, maj, aller }: Props) {
           <label className="interrupteur">
             <input type="checkbox" checked={!!a.barbe} onChange={(e) => changer(i, { barbe: e.target.checked })} />
             Barbe
+          </label>
+          <label className="interrupteur">
+            <input type="checkbox" checked={!!a.saxophone} onChange={(e) => changer(i, { saxophone: e.target.checked })} />
+            Saxophone
           </label>
         </section>
       ))}

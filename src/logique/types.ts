@@ -63,6 +63,7 @@ export interface Avatar {
   coiffure: string
   lunettes?: boolean
   barbe?: boolean
+  saxophone?: boolean
 }
 
 export interface Etat {

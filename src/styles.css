@@ -226,12 +226,17 @@ button.puce.choisie {
   }
 }
 
-/* L'île */
+/* L'île : le dessin, et les deux avatars posés par-dessus, sur la plage */
+.ile-cadre {
+  position: relative;
+  display: block;
+  margin-bottom: 12px;
+}
+
 svg.ile {
   display: block;
   width: 100%;
   border-radius: 12px;
-  margin-bottom: 12px;
   touch-action: manipulation; /* pas de zoom au double tap sur la carte */
 }
 
@@ -239,22 +244,30 @@ svg.ile [role='button'] {
   cursor: pointer;
 }
 
-/* Aperçu sur l'accueil : petite carte à gauche, texte à droite */
-button.apercu-ile {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  padding: 12px;
+canvas.avatar-ile {
+  position: absolute;
+  bottom: 1%;
+  width: 19%;
+  pointer-events: none; /* un tap sur un avatar atteint l'île en dessous */
+}
+
+canvas.avatar-ile.gauche {
+  left: 0;
+}
+
+canvas.avatar-ile.droite {
+  right: 0;
+}
+
+/* Sur l'accueil : l'île en grand, qui ouvre le jeu quand on la touche */
+button.ile-accueil {
+  display: block;
+  padding: 0 0 12px;
   margin-bottom: 12px;
   background: var(--carte);
   color: var(--texte);
   border: 1px solid var(--bord);
-  text-align: left;
-}
-
-button.apercu-ile svg.ile {
-  width: 96px;
-  margin: 0;
+  font-weight: 400;
 }
 
 /* Ligne du catalogue : nom à gauche, coût à droite */

@@ -1,6 +1,7 @@
 // Écran « Île » : la carte, les ressources, et la construction sur les cases dégagées.
 import { useState } from 'react'
 import type { Ecran } from '../App'
+import { avatarsDe } from '../avatar'
 import { CATALOGUE, NIVEAU_MAX, PALIERS_JOURS } from '../config'
 import { JOUR_MS, tempsCumuleMs } from '../logique/calculs'
 import {
@@ -19,12 +20,30 @@ import {
 } from '../logique/ile'
 import type { Etat } from '../logique/types'
 import { useMaintenant } from '../useMaintenant'
+import { Apercu } from './Avatars'
 
 /** Couleur du sol de chaque zone, de la plage (zone 1) au sommet (zone 6). */
 const COULEURS_ZONES = ['#d9c58a', '#a9c46c', '#7fb069', '#5a9a5f', '#8d9a8a', '#c9d3da']
 
-/** Côté d'une case, dans les unités du dessin. */
-const C = 10
+// L'île est dessinée en « 3D isométrique » : on la regarde de biais et d'en haut.
+// Chaque case est un losange posé sur un bloc de terre, d'autant plus haut que
+// sa zone est proche du sommet. Les mesures sont dans les unités du dessin.
+/** Largeur et hauteur du losange d'une case. */
+const L = 20
+const H = 10
+/** Hauteur gagnée à chaque zone, et épaisseur du socle de l'île. */
+const MARCHE = 2.2
+const SOCLE = 3
+/** Largeur du dessin, et position verticale de la case du fond. */
+const LARGEUR = TAILLE * L
+const HAUT = 4 + 5 * MARCHE
+/** Haut de la plage, sous l'île. */
+const PLAGE = HAUT + TAILLE * H + SOCLE + 2
+
+/** Les cases, du fond vers l'avant : celles de devant sont dessinées en dernier et cachent les autres. */
+const ORDRE = ZONE_DE_CASE.map((_, i) => i).sort(
+  (a, b) => (a % TAILLE) + Math.floor(a / TAILLE) - ((b % TAILLE) + Math.floor(b / TAILLE)),
+)
 
 interface PropsCarte {
   etat: Etat
@@ -35,62 +54,83 @@ interface PropsCarte {
   onCase?: (numCase: number) => void
 }
 
-/** Le dessin de l'île (SVG). Utilisé ici en grand, et en petit sur l'accueil. */
+/** Le dessin de l'île (SVG), avec les deux avatars sur la plage. Utilisé ici et sur l'accueil. */
 export function CarteIle({ etat, maintenant, selection, onCase }: PropsCarte) {
   const degagees = casesDegagees(etat, maintenant)
   const monuments = etat.recompenses.filter((r) => r.encaisseeLe)
 
   return (
-    <svg className="ile" viewBox={`0 0 ${TAILLE * C} ${TAILLE * C + 12}`} role="group" aria-label="Carte de l'île">
-      {ZONE_DE_CASE.map((zone, i) => {
-        const x = (i % TAILLE) * C
-        const y = Math.floor(i / TAILLE) * C
-        const batiment = etat.batiments.find((b) => b.case === i)
-        const m = batiment && modele(batiment.type)
-        const description = !degagees[i] ? 'brume' : m ? m.nom : 'case libre'
-        return (
-          <g
-            key={i}
-            // Les 4 lignes suivantes rendent la case utilisable au clavier et au lecteur d'écran.
-            role={onCase ? 'button' : undefined}
-            tabIndex={onCase ? 0 : undefined}
-            aria-label={`Ligne ${Math.floor(i / TAILLE) + 1}, colonne ${(i % TAILLE) + 1} : ${description}`}
-            onKeyDown={onCase && ((e) => e.key === 'Enter' && onCase(i))}
-            onClick={onCase && (() => onCase(i))}
-          >
-            <rect x={x} y={y} width={C} height={C} fill={COULEURS_ZONES[zone]} stroke="#0f1419" strokeWidth={0.3} />
-            {degagees[i] ? (
-              m && (
-                // La taille de l'emoji grandit avec le niveau du bâtiment.
-                <text x={x + C / 2} y={y + C / 2} fontSize={4 + batiment.niveau * 1.3} textAnchor="middle" dominantBaseline="central">
-                  {m.emoji}
-                </text>
-              )
-            ) : (
-              // Brume : un voile gris, d'opacité légèrement différente d'une case à l'autre.
-              <rect x={x} y={y} width={C} height={C} fill="#b8c2cc" opacity={0.8 + ((i * 7) % 4) * 0.05} />
-            )}
-            {selection === i && (
-              <rect x={x + 0.5} y={y + 0.5} width={C - 1} height={C - 1} fill="none" stroke="#fff" strokeWidth={1} />
-            )}
-          </g>
-        )
-      })}
+    <span className="ile-cadre">
+      <svg className="ile" viewBox={`0 0 ${LARGEUR} ${PLAGE + 22}`} role="group" aria-label="Carte de l'île">
+        <rect width={LARGEUR} height={PLAGE + 22} fill="#16324a" />
+        {ORDRE.map((i) => {
+          const colonne = i % TAILLE
+          const ligne = Math.floor(i / TAILLE)
+          const zone = ZONE_DE_CASE[i]
+          // (x, y) = le coin du fond du losange, relevé selon la hauteur de la zone.
+          const x = LARGEUR / 2 + ((colonne - ligne) * L) / 2
+          const y = HAUT + ((colonne + ligne) * H) / 2 - zone * MARCHE
+          const bas = y + H / 2 + zone * MARCHE + SOCLE // niveau de la mer, sous les coins gauche et droit
+          const dessus = `${x},${y} ${x + L / 2},${y + H / 2} ${x},${y + H} ${x - L / 2},${y + H / 2}`
+          const batiment = etat.batiments.find((b) => b.case === i)
+          const m = batiment && modele(batiment.type)
+          const description = !degagees[i] ? 'brume' : m ? m.nom : 'case libre'
+          const taille = 7 + (batiment?.niveau ?? 0) * 1.5
+          return (
+            <g
+              key={i}
+              // Les 4 lignes suivantes rendent la case utilisable au clavier et au lecteur d'écran.
+              role={onCase ? 'button' : undefined}
+              tabIndex={onCase ? 0 : undefined}
+              aria-label={`Ligne ${ligne + 1}, colonne ${colonne + 1} : ${description}`}
+              onKeyDown={onCase && ((e) => e.key === 'Enter' && onCase(i))}
+              onClick={onCase && (() => onCase(i))}
+            >
+              {/* Les deux flancs de terre visibles, puis le dessus. */}
+              <polygon points={`${x - L / 2},${y + H / 2} ${x},${y + H} ${x},${bas + H / 2} ${x - L / 2},${bas}`} fill="#8a6b4a" />
+              <polygon points={`${x + L / 2},${y + H / 2} ${x},${y + H} ${x},${bas + H / 2} ${x + L / 2},${bas}`} fill="#6a5038" />
+              <polygon points={dessus} fill={COULEURS_ZONES[zone]} stroke="rgba(0,0,0,0.25)" strokeWidth={0.3} />
+              {degagees[i] ? (
+                m && (
+                  <>
+                    <ellipse cx={x} cy={y + H / 2 + 1} rx={taille * 0.4} ry={taille * 0.15} fill="rgba(0,0,0,0.25)" />
+                    {/* Le bâtiment est debout sur la case ; il grandit avec son niveau. */}
+                    <text x={x} y={y + H / 2 - taille * 0.3} fontSize={taille} textAnchor="middle" dominantBaseline="central">
+                      {m.emoji}
+                    </text>
+                  </>
+                )
+              ) : (
+                // Brume : un voile gris sur la case et un petit nuage posé dessus.
+                <>
+                  <polygon points={dessus} fill="#b8c2cc" opacity={0.8 + ((i * 7) % 4) * 0.05} />
+                  <ellipse cx={x} cy={y + H / 2 - 1.5} rx={L * 0.32} ry={H * 0.35} fill="#fff" opacity={0.35} />
+                </>
+              )}
+              {selection === i && <polygon points={dessus} fill="none" stroke="#fff" strokeWidth={1} />}
+            </g>
+          )
+        })}
 
-      {/* La plage des monuments : un trophée par récompense encaissée. */}
-      <rect x={0} y={TAILLE * C} width={TAILLE * C} height={12} fill="#e8d9a8" />
-      {/* La plage a 9 places : 8 trophées, puis « +N » s'il y en a davantage. */}
-      {monuments.slice(0, 8).map((r, i) => (
-        <text key={r.id} x={6 + i * 9} y={TAILLE * C + 6} fontSize={7} textAnchor="middle" dominantBaseline="central">
-          🏆<title>{r.nom}</title>
-        </text>
+        {/* La plage : les avatars aux deux bouts, et un trophée par récompense encaissée. */}
+        <rect x={0} y={PLAGE} width={LARGEUR} height={22} fill="#e8d9a8" />
+        <rect x={0} y={PLAGE} width={LARGEUR} height={1.5} fill="#f6efd2" />
+        {/* 8 trophées, puis « +N » s'il y en a davantage. */}
+        {monuments.slice(0, 8).map((r, i) => (
+          <text key={r.id} x={36 + i * 11} y={PLAGE + 12} fontSize={9} textAnchor="middle" dominantBaseline="central">
+            🏆<title>{r.nom}</title>
+          </text>
+        ))}
+        {monuments.length > 8 && (
+          <text x={36 + 8 * 11} y={PLAGE + 12} fontSize={5} fill="#3a3320" textAnchor="middle" dominantBaseline="central">
+            +{monuments.length - 8}
+          </text>
+        )}
+      </svg>
+      {avatarsDe(etat).map((avatar, i) => (
+        <Apercu key={i} avatar={avatar} className={`avatar-ile ${i === 0 ? 'gauche' : 'droite'}`} />
       ))}
-      {monuments.length > 8 && (
-        <text x={6 + 8 * 9} y={TAILLE * C + 6} fontSize={4} fill="#3a3320" textAnchor="middle" dominantBaseline="central">
-          +{monuments.length - 8}
-        </text>
-      )}
-    </svg>
+    </span>
   )
 }
 

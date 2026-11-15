@@ -1,4 +1,4 @@
-// Écran d'accueil : temps écoulé, cagnotte, prochaine récompense,
+// Écran d'accueil : l'île en grand, temps écoulé, cagnotte, prochaine récompense,
 // check-in quotidien et bouton « J'ai une envie ».
 import type { Ecran } from '../App'
 import { NOM_UNITE, chf, duree, texteManque } from '../format'
@@ -33,6 +33,14 @@ export default function Accueil({ etat, maj, aller }: Props) {
   return (
     <main className="avec-bouton-fixe">
       <h1>Cagnotte</h1>
+
+      {/* L'île est le cœur de la page : un tap l'ouvre pour construire. */}
+      <button className="ile-accueil" onClick={() => aller('ile')}>
+        <CarteIle etat={etat} maintenant={maintenant} />
+        <span>
+          Mon île · ⚡ {Math.floor(energie(etat, maintenant))} · 💎 {soldeCristaux(etat, maintenant)}
+        </span>
+      </button>
 
       {pasEncoreArrete ? (
         <section className="carte centre">
@@ -84,15 +92,6 @@ export default function Accueil({ etat, maj, aller }: Props) {
 
       <button className="secondaire espace" onClick={() => aller('recompenses')}>
         Mes récompenses
-      </button>
-
-      {/* Aperçu de l'île : un tap ouvre le jeu. */}
-      <button className="apercu-ile" onClick={() => aller('ile')}>
-        <CarteIle etat={etat} maintenant={maintenant} />
-        <span>
-          Mon île
-          <br />⚡ {Math.floor(energie(etat, maintenant))} · 💎 {soldeCristaux(etat, maintenant)}
-        </span>
       </button>
 
       {!pasEncoreArrete && (

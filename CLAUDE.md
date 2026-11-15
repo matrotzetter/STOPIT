@@ -80,5 +80,10 @@ commenter le code en français, ne pas supposer qu'il connaît les outils.
   `src/ecrans/Avatars.tsx` (Réglages → Mes avatars) ; `avatarsDe` complète ce qui
   manque avec `AVATARS_DEFAUT`. Purement décoratifs.
 
+- [x] (i) île en 3D isométrique (`CarteIle` dans `Ile.tsx` : losanges SVG, hauteur
+  selon la zone, cases dessinées du fond vers l'avant via `ORDRE`), en tête de
+  l'accueil. Avatars en volume, option `saxophone`, posés sur la plage de l'île
+  par-dessus le SVG (composant `Apercu` de `Avatars.tsx`, classe `avatar-ile`).
+
 À chaque fin d'étape : lancer l'app, exécuter les tests, dire quoi tester, faire
 un commit, attendre le retour de l'utilisateur.
