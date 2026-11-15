@@ -1,6 +1,5 @@
 // Écran d'accueil : temps écoulé, cagnotte, prochaine récompense,
 // check-in quotidien et bouton « J'ai une envie ».
-import { useEffect, useState } from 'react'
 import type { Ecran } from '../App'
 import { NOM_UNITE, chf, duree } from '../format'
 import {
@@ -14,21 +13,12 @@ import {
   unitesNonConsommees,
 } from '../logique/calculs'
 import type { Etat } from '../logique/types'
+import { useMaintenant } from '../useMaintenant'
 
 interface Props {
   etat: Etat
   maj: (etat: Etat) => void
   aller: (ecran: Ecran) => void
-}
-
-/** Renvoie l'heure actuelle et la rafraîchit chaque seconde. */
-function useMaintenant(): number {
-  const [maintenant, setMaintenant] = useState(Date.now())
-  useEffect(() => {
-    const minuterie = setInterval(() => setMaintenant(Date.now()), 1000)
-    return () => clearInterval(minuterie) // on arrête la minuterie en quittant l'écran
-  }, [])
-  return maintenant
 }
 
 export default function Accueil({ etat, maj, aller }: Props) {

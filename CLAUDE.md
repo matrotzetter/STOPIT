@@ -43,7 +43,8 @@ commenter le code en français, ne pas supposer qu'il connaît les outils.
 ## Avancement
 
 - [x] (a) structure + premier lancement + accueil
-- [ ] (b) mode Envie avec respiration guidée
+- [x] (b) mode Envie avec respiration guidée (option « Jouer » désactivée jusqu'à
+  l'étape e ; le minuteur se calcule depuis l'heure de départ)
 - [ ] (c) récompenses + rechute
 - [ ] (d) île : grille, brume, énergie, bâtiments
 - [ ] (e) mini-jeu + cristaux

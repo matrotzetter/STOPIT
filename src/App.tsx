@@ -1,6 +1,7 @@
 // Composant racine : garde les données en mémoire et choisit l'écran affiché.
 import { useState } from 'react'
 import Accueil from './ecrans/Accueil'
+import Envie from './ecrans/Envie'
 import PremierLancement from './ecrans/PremierLancement'
 import type { Etat } from './logique/types'
 import { charger, sauvegarder } from './stockage'
@@ -22,10 +23,12 @@ export default function App() {
   if (!etat) return <PremierLancement onTermine={maj} />
   if (ecran === 'accueil') return <Accueil etat={etat} maj={maj} aller={setEcran} />
 
-  // Écrans pas encore construits (étapes b et c).
+  if (ecran === 'envie') return <Envie etat={etat} maj={maj} aller={setEcran} />
+
+  // Écran pas encore construit (étape c).
   return (
     <main>
-      <h1>{ecran === 'envie' ? 'Mode Envie' : 'Rechute'}</h1>
+      <h1>Rechute</h1>
       <p className="discret">Cet écran arrive à la prochaine étape.</p>
       <button onClick={() => setEcran('accueil')}>Retour</button>
     </main>
