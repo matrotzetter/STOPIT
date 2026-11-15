@@ -61,6 +61,9 @@ Autres commandes utiles :
 
 Ton app est alors à l'adresse `https://TON-PSEUDO.github.io/cagnotte/`.
 
+Pour ce dépôt, c'est déjà fait : l'app est en ligne à l'adresse
+https://matrotzetter.github.io/STOPIT/
+
 Ensuite, pour publier une modification :
 
 ```bash
