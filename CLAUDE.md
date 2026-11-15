@@ -11,7 +11,9 @@ commenter le code en français, ne pas supposer qu'il connaît les outils.
 
 - `npm run dev` : lance l'app en développement (http://localhost:5173)
 - `npm test` : exécute les tests des règles de calcul
-- `npm run build` : vérifie les types puis fabrique la version finale dans `dist/`
+- `npm run build` : dessine les icônes, vérifie les types, puis fabrique la version
+  finale dans `dist/`
+- `npm run preview` : sert `dist/` sur http://localhost:4173 (pour tester le hors-ligne)
 
 ## Principes
 
@@ -66,7 +68,11 @@ commenter le code en français, ne pas supposer qu'il connaît les outils.
   `src/stockage.ts` valide aussi bien le stockage que l'import ; le formulaire
   `PremierLancement` sert aussi à modifier le profil via la prop `existant` ;
   sons générés dans `src/sons.ts`, coupés par `etat.sons === false`)
-- [ ] (g) PWA + mise en ligne GitHub Pages (téléphone : iPhone)
+- [x] (g) PWA + mise en ligne GitHub Pages (téléphone : iPhone). `vite-plugin-pwa`
+  génère le service worker ; `scripts/icones.mjs` dessine les icônes PNG dans
+  `public/` (dossier ignoré par git, recréé à chaque build) ;
+  `.github/workflows/deploy.yml` teste, construit et publie à chaque push sur main.
+  Reste à faire par l'utilisateur : créer le dépôt GitHub, pousser, activer Pages.
 
 À chaque fin d'étape : lancer l'app, exécuter les tests, dire quoi tester, faire
 un commit, attendre le retour de l'utilisateur.
