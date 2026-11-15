@@ -1,0 +1,206 @@
+/* Thème sombre, pensé pour un téléphone tenu d'une main. */
+
+:root {
+  --fond: #0f1419;
+  --carte: #1a222c;
+  --bord: #2c3846;
+  --texte: #e8edf2;
+  --discret: #9aa7b5;
+  --accent: #4fd1a5; /* vert : actions principales */
+  --or: #f2c14e; /* cagnotte */
+  color-scheme: dark;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--fond);
+  color: var(--texte);
+  font-family: system-ui, sans-serif;
+  font-size: 17px;
+  line-height: 1.4;
+}
+
+main {
+  max-width: 480px;
+  margin: 0 auto;
+  /* env(...) : marge supplémentaire pour l'encoche et la barre du bas des téléphones */
+  padding: calc(16px + env(safe-area-inset-top)) 16px calc(16px + env(safe-area-inset-bottom));
+}
+
+/* Laisse la place du bouton « J'ai une envie » fixé en bas. */
+main.avec-bouton-fixe {
+  padding-bottom: calc(110px + env(safe-area-inset-bottom));
+}
+
+h1 {
+  font-size: 1.5rem;
+  margin: 0 0 12px;
+}
+
+p {
+  margin: 0 0 8px;
+}
+
+.discret {
+  color: var(--discret);
+  font-size: 0.9rem;
+}
+
+.carte {
+  background: var(--carte);
+  border: 1px solid var(--bord);
+  border-radius: 14px;
+  padding: 14px;
+  margin-bottom: 12px;
+}
+
+.centre {
+  text-align: center;
+}
+
+.grand {
+  font-size: 1.7rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums; /* chiffres de largeur fixe : le compteur ne « saute » pas */
+  margin: 0;
+}
+
+.valeur {
+  font-size: 1.15rem;
+  font-weight: 600;
+  margin: 0;
+  font-variant-numeric: tabular-nums;
+}
+
+.or {
+  color: var(--or);
+}
+
+.tuiles {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.tuiles .carte {
+  margin: 0;
+}
+
+.rangee {
+  display: flex;
+  gap: 12px;
+}
+
+.rangee > * {
+  flex: 1;
+  min-width: 0;
+}
+
+progress {
+  width: 100%;
+  height: 12px;
+  margin: 8px 0;
+  accent-color: var(--accent);
+}
+
+/* Boutons : gros, faciles à toucher */
+button {
+  width: 100%;
+  min-height: 56px;
+  border: 0;
+  border-radius: 14px;
+  background: var(--accent);
+  color: #06281d;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+button.secondaire {
+  background: transparent;
+  color: var(--texte);
+  border: 1px solid var(--bord);
+}
+
+.bouton-envie {
+  position: fixed;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: calc(16px + env(safe-area-inset-bottom));
+  width: min(448px, calc(100% - 32px));
+  min-height: 72px;
+  font-size: 1.25rem;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.6);
+}
+
+/* Formulaires */
+fieldset {
+  border: 0;
+  padding: 0;
+  margin: 0 0 24px;
+}
+
+legend {
+  font-weight: 700;
+  font-size: 1.1rem;
+  margin-bottom: 8px;
+  padding: 0;
+}
+
+label {
+  display: block;
+  margin-bottom: 12px;
+  color: var(--discret);
+  font-size: 0.9rem;
+}
+
+input[type='text'],
+input[type='number'],
+input[type='datetime-local'] {
+  display: block;
+  width: 100%;
+  min-height: 52px;
+  margin: 4px 0 12px;
+  padding: 0 12px;
+  border: 1px solid var(--bord);
+  border-radius: 12px;
+  background: var(--fond);
+  color: var(--texte);
+  /* 17px : en dessous de 16px, l'iPhone zoome quand on touche un champ */
+  font: inherit;
+}
+
+/* Groupe de choix (boutons radio présentés comme de grosses pastilles) */
+.choix {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.choix label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 52px;
+  margin: 0;
+  padding: 0 12px;
+  border: 1px solid var(--bord);
+  border-radius: 12px;
+  color: var(--texte);
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+.choix label.choisi {
+  border-color: var(--accent);
+}
+
+.choix input {
+  accent-color: var(--accent);
+}
