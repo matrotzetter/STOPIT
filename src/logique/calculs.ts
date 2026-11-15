@@ -4,7 +4,7 @@
 // C'est ce qui permet de les tester automatiquement (calculs.test.ts).
 
 import { CRISTAUX_PAR_CHECKIN, CRISTAUX_PAR_ENVIE, CRISTAUX_PAR_PALIER, PALIERS_JOURS } from '../config'
-import type { Etat, Profil, Recompense } from './types'
+import type { Etat, Profil, Rechute, Recompense } from './types'
 
 /** Nombre de millisecondes dans un jour. */
 export const JOUR_MS = 24 * 60 * 60 * 1000
@@ -12,12 +12,19 @@ export const JOUR_MS = 24 * 60 * 60 * 1000
 /** Additionne une liste de nombres. */
 const somme = (nombres: number[]) => nombres.reduce((total, n) => total + n, 0)
 
-/** Dates des rechutes qui comptent : après l'arrêt, pas dans le futur, triées. */
-function datesRechutes(etat: Etat, maintenant: number): number[] {
+/**
+ * Les rechutes qui comptent : après l'arrêt, pas dans le futur, triées par date.
+ * Tous les calculs passent par ici, pour que série et cagnotte suivent la même règle.
+ */
+function rechutesComptees(etat: Etat, maintenant: number): Rechute[] {
   return etat.rechutes
-    .map((r) => r.date)
-    .filter((d) => d >= etat.profil.dateArret && d <= maintenant)
-    .sort((a, b) => a - b)
+    .filter((r) => r.date >= etat.profil.dateArret && r.date <= maintenant)
+    .sort((a, b) => a.date - b.date)
+}
+
+/** Dates des rechutes qui comptent. */
+function datesRechutes(etat: Etat, maintenant: number): number[] {
+  return rechutesComptees(etat, maintenant).map((r) => r.date)
 }
 
 /** Économie par jour = consommation par jour × prix par unité. */
@@ -52,8 +59,8 @@ export function meilleureSerieMs(etat: Etat, maintenant: number): number {
 }
 
 /** Total des unités consommées lors des rechutes. */
-function unitesRechutes(etat: Etat): number {
-  return somme(etat.rechutes.map((r) => r.unites))
+function unitesRechutes(etat: Etat, maintenant: number): number {
+  return somme(rechutesComptees(etat, maintenant).map((r) => r.unites))
 }
 
 /**
@@ -62,7 +69,7 @@ function unitesRechutes(etat: Etat): number {
  */
 export function cagnotte(etat: Etat, maintenant: number): number {
   const economies = economieParJour(etat.profil) * (tempsCumuleMs(etat, maintenant) / JOUR_MS)
-  const coutRechutes = unitesRechutes(etat) * etat.profil.prixParUnite
+  const coutRechutes = unitesRechutes(etat, maintenant) * etat.profil.prixParUnite
   const encaisse = somme(etat.recompenses.filter((r) => r.encaisseeLe).map((r) => r.prix))
   return Math.max(0, economies - coutRechutes - encaisse)
 }
@@ -70,7 +77,7 @@ export function cagnotte(etat: Etat, maintenant: number): number {
 /** Unités non consommées depuis l'arrêt (rechutes déduites). */
 export function unitesNonConsommees(etat: Etat, maintenant: number): number {
   const evitees = etat.profil.consoParJour * (tempsCumuleMs(etat, maintenant) / JOUR_MS)
-  return Math.max(0, evitees - unitesRechutes(etat))
+  return Math.max(0, evitees - unitesRechutes(etat, maintenant))
 }
 
 export type EtatRecompense = 'verrouillee' | 'debloquee' | 'encaissee'

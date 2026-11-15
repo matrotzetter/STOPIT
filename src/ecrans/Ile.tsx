@@ -79,11 +79,17 @@ export function CarteIle({ etat, maintenant, selection, onCase }: PropsCarte) {
 
       {/* La plage des monuments : un trophée par récompense encaissée. */}
       <rect x={0} y={TAILLE * C} width={TAILLE * C} height={12} fill="#e8d9a8" />
-      {monuments.map((r, i) => (
+      {/* La plage a 9 places : 8 trophées, puis « +N » s'il y en a davantage. */}
+      {monuments.slice(0, 8).map((r, i) => (
         <text key={r.id} x={6 + i * 9} y={TAILLE * C + 6} fontSize={7} textAnchor="middle" dominantBaseline="central">
           🏆<title>{r.nom}</title>
         </text>
       ))}
+      {monuments.length > 8 && (
+        <text x={6 + 8 * 9} y={TAILLE * C + 6} fontSize={4} fill="#3a3320" textAnchor="middle" dominantBaseline="central">
+          +{monuments.length - 8}
+        </text>
+      )}
     </svg>
   )
 }

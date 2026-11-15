@@ -66,6 +66,13 @@ describe('avec une rechute de 3 unités au jour 2', () => {
     expect(unitesNonConsommees(etat, jour5)).toBeCloseTo(47)
   })
 
+  it('une rechute notée avant la date d’arrêt ne compte ni pour la série ni pour la cagnotte', () => {
+    const avant: Etat = { ...base, rechutes: [{ date: t0 - J, unites: 10 }] }
+    expect(serieMs(avant, t0 + 2 * J)).toBe(2 * J)
+    expect(cagnotte(avant, t0 + 2 * J)).toBeCloseTo(10)
+    expect(unitesNonConsommees(avant, t0 + 2 * J)).toBeCloseTo(20)
+  })
+
   it('la cagnotte n’est jamais négative', () => {
     const grosse: Etat = { ...base, rechutes: [{ date: t0 + J, unites: 1000 }] }
     expect(cagnotte(grosse, t0 + 2 * J)).toBe(0)

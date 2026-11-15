@@ -1,10 +1,11 @@
 // Mode « Envie » : on choisit une activité, un minuteur de 5 minutes tourne,
 // puis on dit si l'envie est passée.
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import type { Ecran } from '../App'
 import { CRISTAUX_PAR_ENVIE, DECLENCHEURS, DUREE_ENVIE_MS, EXPIRATION_S, INSPIRATION_S } from '../config'
-import type { Etat } from '../logique/types'
+import type { Envie as EnvieNotee, Etat } from '../logique/types'
 import { useMaintenant } from '../useMaintenant'
+import Rechute from './Rechute'
 
 interface Props {
   etat: Etat
@@ -13,7 +14,7 @@ interface Props {
 }
 
 /** Les moments de l'écran. La question finale s'affiche quand le minuteur atteint zéro. */
-type Phase = 'choix' | 'minuteur' | 'victoire'
+type Phase = 'choix' | 'minuteur' | 'victoire' | 'rechute'
 
 export default function Envie({ etat, maj, aller }: Props) {
   const [phase, setPhase] = useState<Phase>('choix')
@@ -26,12 +27,38 @@ export default function Envie({ etat, maj, aller }: Props) {
   // Rafraîchi 4 fois par seconde pour que la respiration change de sens au bon moment.
   const maintenant = useMaintenant(250)
 
-  /** Enregistre l'envie dans l'historique. */
-  function enregistrer(surmontee: boolean) {
-    maj({
-      ...etat,
-      envies: [...etat.envies, { date: Date.now(), surmontee, mode: 'respirer', intensite, declencheur }],
-    })
+  // Pendant le minuteur, on demande au téléphone de ne pas verrouiller l'écran
+  // (sinon l'iPhone s'éteint au bout de 30 secondes sans contact).
+  useEffect(() => {
+    if (phase !== 'minuteur') return
+    let verrou: WakeLockSentinel | undefined
+    let termine = false
+    navigator.wakeLock
+      ?.request('screen')
+      .then((v) => {
+        // Si on a déjà quitté le minuteur entre-temps, on rend le verrou tout de suite.
+        if (termine) v.release()
+        else verrou = v
+      })
+      .catch(() => {}) // refusé ou non disponible : tant pis, le minuteur reste juste
+    // shortcut: le verrou n'est pas redemandé si on quitte puis revient dans l'app pendant le minuteur.
+    return () => {
+      termine = true
+      verrou?.release()
+    }
+  }, [phase])
+
+  /** Ajoute l'envie à l'historique d'un état donné. */
+  function avecEnvie(base: Etat, surmontee: boolean): Etat {
+    const envie: EnvieNotee = { date: Date.now(), surmontee, mode: 'respirer', intensite, declencheur }
+    return { ...base, envies: [...base.envies, envie] }
+  }
+
+  // ---------- « J'ai consommé » : on passe la main à l'écran Rechute ----------
+  // L'envie non surmontée n'est enregistrée que si la rechute est validée :
+  // si on annule, rien n'est écrit.
+  if (phase === 'rechute') {
+    return <Rechute etat={etat} maj={(avecRechute) => maj(avecEnvie(avecRechute, false))} aller={aller} />
   }
 
   function demarrer() {
@@ -121,7 +148,7 @@ export default function Envie({ etat, maj, aller }: Props) {
         <h1>L'envie est passée ?</h1>
         <button
           onClick={() => {
-            enregistrer(true)
+            maj(avecEnvie(etat, true))
             setPhase('victoire')
           }}
         >
@@ -130,13 +157,7 @@ export default function Envie({ etat, maj, aller }: Props) {
         <button className="secondaire espace" onClick={demarrer}>
           Pas encore (5 minutes de plus)
         </button>
-        <button
-          className="secondaire"
-          onClick={() => {
-            enregistrer(false)
-            aller('rechute')
-          }}
-        >
+        <button className="secondaire" onClick={() => setPhase('rechute')}>
           J'ai consommé
         </button>
       </main>

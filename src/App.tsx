@@ -19,7 +19,12 @@ export default function App() {
 
   /** Toute modification passe par ici : on enregistre, puis on rafraîchit l'affichage. */
   function maj(nouvelEtat: Etat) {
-    sauvegarder(nouvelEtat)
+    if (!sauvegarder(nouvelEtat)) {
+      alert(
+        "Impossible d'enregistrer sur cet appareil (stockage plein ou bloqué). " +
+          'Ce changement sera perdu à la fermeture de l’app.',
+      )
+    }
     setEtat(nouvelEtat)
   }
 
