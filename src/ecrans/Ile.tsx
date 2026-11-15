@@ -45,6 +45,14 @@ const ETOILES = [
   [8, 34], [40, 8], [58, 20], [12, 52], [34, 30], [120, 6], [140, 22], [152, 10], [104, 12], [150, 96], [10, 92], [28, 104],
 ]
 
+/** Position des vagues (sur la mer, de part et d'autre de l'île) et des lucioles (au-dessus de l'île). */
+const VAGUES = [
+  [6, 72], [20, 84], [4, 60], [128, 88], [142, 76], [116, 96], [44, 96],
+]
+const LUCIOLES = [
+  [50, 60], [78, 46], [96, 70], [66, 80], [112, 52], [84, 30],
+]
+
 /** Les cases, du fond vers l'avant : celles de devant sont dessinées en dernier et cachent les autres. */
 const ORDRE = ZONE_DE_CASE.map((_, i) => i).sort(
   (a, b) => (a % TAILLE) + Math.floor(a / TAILLE) - ((b % TAILLE) + Math.floor(b / TAILLE)),
@@ -130,6 +138,14 @@ export function CarteIle({ etat, maintenant, selection, onCase }: PropsCarte) {
           )
         })}
 
+        {/* Des vagues claires sur la mer et des lucioles au-dessus de l'île. */}
+        {VAGUES.map(([vx, vy], n) => (
+          <path key={n} className="vague" d={`M${vx},${vy} q3,-1.5 6,0 t6,0`} style={{ animationDelay: `${n * 0.7}s` }} />
+        ))}
+        {LUCIOLES.map(([lx, ly], n) => (
+          <circle key={n} className="luciole" cx={lx} cy={ly} r={0.9} style={{ animationDelay: `${n * 1.3}s` }} />
+        ))}
+
         {/* La plage : les avatars aux deux bouts, et un trophée par récompense encaissée. */}
         <rect x={0} y={PLAGE} width={LARGEUR} height={22} fill="#e8d9a8" />
         <rect x={0} y={PLAGE} width={LARGEUR} height={1.5} fill="#f6efd2" />
@@ -146,7 +162,7 @@ export function CarteIle({ etat, maintenant, selection, onCase }: PropsCarte) {
         )}
       </svg>
       {avatarsDe(etat).map((avatar, i) => (
-        <Apercu key={i} avatar={avatar} className={`avatar-ile ${i === 0 ? 'gauche' : 'droite'}`} />
+        <Apercu key={i} avatar={avatar} decalage={i * 2} className={`avatar-ile ${i === 0 ? 'gauche' : 'droite'}`} />
       ))}
     </span>
   )

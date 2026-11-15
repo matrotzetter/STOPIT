@@ -1,5 +1,10 @@
 // Les petits personnages, dessinés en code dans un <canvas>.
 // La même fonction sert au mini-jeu, à l'île et à l'aperçu des réglages.
+//
+// Ce sont de vraies figurines en 3D : chaque avatar est un assemblage de boules
+// placées dans l'espace (tête, corps, mains, mèches de cheveux…). Pour le
+// dessiner, on fait tourner ces boules autour de lui, puis on les dessine de la
+// plus éloignée à la plus proche. Quand l'angle change, on le voit donc tourner.
 import { AVATARS_DEFAUT } from './config'
 import type { Avatar, Etat } from './logique/types'
 
@@ -8,183 +13,172 @@ export function avatarsDe(etat: Etat): Avatar[] {
   return AVATARS_DEFAUT.map((defaut, i) => ({ ...defaut, ...etat.avatars?.[i] }))
 }
 
+/** false si la personne a demandé moins d'animations à son appareil : tout reste alors immobile. */
+export const ANIME = typeof matchMedia === 'undefined' || !matchMedia('(prefers-reduced-motion: reduce)').matches
+
+/** Angle de balancement d'un avatar à l'instant t (en millisecondes) : il se tourne doucement à gauche et à droite. */
+export function balancement(t: number, decalage = 0): number {
+  return Math.sin(t / 1400 + decalage) * 0.45
+}
+
 /**
- * Dessine un avatar debout, en volume (ombres et reflets).
- * (x, y) = le point au sol entre ses pieds ; t = sa hauteur totale en pixels.
- * content = true : il sourit en grand, les yeux plissés.
+ * Un élément de l'avatar. Position en « hauteurs d'avatar » :
+ * x vers la droite, y vers le haut depuis les pieds, z vers celui qui regarde.
  */
-export function dessinerAvatar(ctx: CanvasRenderingContext2D, a: Avatar, x: number, y: number, t: number, content = false) {
-  const r = t * 0.27 // rayon de la tête
-  const cy = y - t + r * 1.15 // centre de la tête
-  const largeurCorps = t * 0.5
-  const hautCorps = y - t * 0.42
-  const basCorps = y - t * 0.04
+interface Piece {
+  x: number
+  y: number
+  z: number
+  /** Dessine l'élément, une fois sa position à l'écran (px, py) calculée. */
+  dessin: (px: number, py: number) => void
+}
 
-  const disque = (cx: number, cyy: number, rayon: number, couleur: string | CanvasGradient) => {
-    ctx.fillStyle = couleur
-    ctx.beginPath()
-    ctx.arc(cx, cyy, rayon, 0, Math.PI * 2)
-    ctx.fill()
+/**
+ * Dessine un avatar debout.
+ * (x, y) = le point au sol entre ses pieds ; t = sa hauteur en pixels (cheveux non compris).
+ * content = true : il sourit en grand, les yeux plissés.
+ * angle = de combien il est tourné, en radians (0 = de face, positif = vers la droite).
+ */
+export function dessinerAvatar(
+  ctx: CanvasRenderingContext2D,
+  a: Avatar,
+  x: number,
+  y: number,
+  t: number,
+  content = false,
+  angle = 0,
+) {
+  const pieces: Piece[] = []
+  const ENCRE = '#3a2a22'
+
+  // Un seul dégradé de relief, dessiné pour une boule de rayon 1 : clair en haut à gauche
+  // (là d'où vient la lumière), sombre sur le bord opposé. Il est réutilisé pour chaque boule.
+  const relief = ctx.createRadialGradient(-0.4, -0.45, 0.1, 0, 0, 1.1)
+  relief.addColorStop(0, 'rgba(255, 255, 255, 0.4)')
+  relief.addColorStop(0.5, 'rgba(255, 255, 255, 0)')
+  relief.addColorStop(1, 'rgba(0, 0, 0, 0.35)')
+
+  /** Ajoute une boule (ou un œuf si rx ≠ ry). Rayons en hauteurs d'avatar. */
+  const boule = (bx: number, by: number, bz: number, rx: number, couleur: string, ry = rx) => {
+    pieces.push({
+      x: bx,
+      y: by,
+      z: bz,
+      dessin: (px, py) => {
+        ctx.save()
+        ctx.translate(px, py)
+        ctx.scale(rx * t, ry * t)
+        for (const remplissage of [couleur, relief]) {
+          ctx.fillStyle = remplissage
+          ctx.beginPath()
+          ctx.arc(0, 0, 1, 0, Math.PI * 2)
+          ctx.fill()
+        }
+        ctx.restore()
+      },
+    })
   }
-  /** Un dégradé rond qui donne du relief : clair en haut à gauche, sombre sur le bord opposé. */
-  const relief = (cx: number, cyy: number, rayon: number) => {
-    const g = ctx.createRadialGradient(cx - rayon * 0.4, cyy - rayon * 0.45, rayon * 0.1, cx, cyy, rayon * 1.1)
-    g.addColorStop(0, 'rgba(255, 255, 255, 0.3)')
-    g.addColorStop(0.5, 'rgba(255, 255, 255, 0)')
-    g.addColorStop(1, 'rgba(0, 0, 0, 0.25)')
-    return g
+  /** Ajoute un détail plat (œil plissé, bouche, lunettes) dessiné au trait. */
+  const trait = (bx: number, by: number, bz: number, epaisseur: number, tracer: (px: number, py: number) => void) => {
+    pieces.push({
+      x: bx,
+      y: by,
+      z: bz,
+      dessin: (px, py) => {
+        ctx.strokeStyle = ENCRE
+        ctx.lineWidth = Math.max(1, epaisseur * t)
+        ctx.lineCap = 'round'
+        ctx.beginPath()
+        tracer(px, py)
+        ctx.stroke()
+      },
+    })
+  }
+  /** Ajoute une suite de boules entre deux points : un bras, ou un morceau de tube. */
+  const boudin = (de: number[], vers: number[], rayon: number, couleur: string, nombre: number) => {
+    for (let i = 0; i <= nombre; i++) {
+      const p = i / nombre
+      boule(de[0] + (vers[0] - de[0]) * p, de[1] + (vers[1] - de[1]) * p, de[2] + (vers[2] - de[2]) * p, rayon, couleur)
+    }
   }
 
-  // Cheveux longs ou mi-longs : une masse derrière la tête et les épaules
-  if (a.coiffure === 'longs' || a.coiffure === 'milongs') {
-    ctx.fillStyle = a.cheveux
-    ctx.beginPath()
-    ctx.roundRect(x - r * 1.12, cy - r * 0.4, r * 2.24, r * (a.coiffure === 'longs' ? 2.5 : 1.7), r * 0.5)
-    ctx.fill()
-  }
+  // ---------- Le corps ----------
+  boule(-0.12, 0.04, 0.04, 0.1, ENCRE, 0.05) // chaussures
+  boule(0.12, 0.04, 0.04, 0.1, ENCRE, 0.05)
+  boule(0, 0.24, 0, 0.25, a.pull, 0.22) // pull
+  boule(0, 0.68, 0, 0.27, a.peau) // tête
 
-  // Chaussures
-  for (const cote of [-1, 1]) {
-    ctx.fillStyle = '#3a2a22'
-    ctx.beginPath()
-    ctx.ellipse(x + cote * t * 0.12, y - t * 0.03, t * 0.1, t * 0.05, 0, 0, Math.PI * 2)
-    ctx.fill()
-  }
-
-  // Corps : un pull arrondi, ombré comme un cylindre (clair à gauche, sombre à droite et en bas)
-  const ombreCote = ctx.createLinearGradient(x - largeurCorps / 2, 0, x + largeurCorps / 2, 0)
-  ombreCote.addColorStop(0, 'rgba(255, 255, 255, 0.18)')
-  ombreCote.addColorStop(0.45, 'rgba(0, 0, 0, 0)')
-  ombreCote.addColorStop(1, 'rgba(0, 0, 0, 0.3)')
-  const ombreBas = ctx.createLinearGradient(0, hautCorps, 0, basCorps)
-  ombreBas.addColorStop(0.4, 'rgba(0, 0, 0, 0)')
-  ombreBas.addColorStop(1, 'rgba(0, 0, 0, 0.25)')
-  for (const couleur of [a.pull, ombreCote, ombreBas]) {
-    ctx.fillStyle = couleur
-    ctx.beginPath()
-    ctx.roundRect(x - largeurCorps / 2, hautCorps, largeurCorps, basCorps - hautCorps, [t * 0.18, t * 0.18, t * 0.08, t * 0.08])
-    ctx.fill()
-  }
-
-  // Tête
-  disque(x, cy, r, a.peau)
-  disque(x, cy, r, relief(x, cy, r))
-
-  // Barbe : le bas du visage
-  if (a.barbe) {
-    ctx.fillStyle = a.cheveux
-    ctx.beginPath()
-    ctx.arc(x, cy, r * 1.03, 0.45, Math.PI - 0.45)
-    ctx.fill()
-  }
-
-  // Cheveux du dessus (une calotte), et le chignon
+  // ---------- Les cheveux ----------
   if (a.coiffure !== 'chauve') {
-    for (const couleur of [a.cheveux, relief(x, cy, r * 1.08)]) {
-      ctx.fillStyle = couleur
-      ctx.beginPath()
-      ctx.arc(x, cy, r * 1.08, Math.PI + 0.3, -0.3)
-      ctx.fill()
-    }
-    if (a.coiffure === 'chignon') {
-      disque(x, cy - r * 1.2, r * 0.45, a.cheveux)
-      disque(x, cy - r * 1.2, r * 0.45, relief(x, cy - r * 1.2, r * 0.45))
-    }
+    boule(0, 0.76, -0.06, 0.28, a.cheveux) // l'arrière et le dessus du crâne
+    boule(-0.12, 0.87, 0.14, 0.1, a.cheveux) // la frange : trois mèches sur le front
+    boule(0, 0.9, 0.15, 0.1, a.cheveux)
+    boule(0.12, 0.87, 0.14, 0.1, a.cheveux)
+  }
+  if (a.coiffure === 'chignon') boule(0, 1.02, -0.08, 0.1, a.cheveux)
+  if (a.coiffure === 'milongs' || a.coiffure === 'longs') {
+    boule(-0.2, 0.55, -0.08, 0.13, a.cheveux)
+    boule(0.2, 0.55, -0.08, 0.13, a.cheveux)
+    boule(0, 0.55, -0.15, 0.2, a.cheveux)
+  }
+  if (a.coiffure === 'longs') {
+    boule(-0.2, 0.42, -0.1, 0.12, a.cheveux)
+    boule(0.2, 0.42, -0.1, 0.12, a.cheveux)
+    boule(0, 0.42, -0.16, 0.2, a.cheveux)
   }
 
-  // Joues roses
-  disque(x - r * 0.55, cy + r * 0.3, r * 0.17, 'rgba(255, 120, 120, 0.35)')
-  disque(x + r * 0.55, cy + r * 0.3, r * 0.17, 'rgba(255, 120, 120, 0.35)')
-
-  // Yeux et bouche
-  ctx.strokeStyle = '#3a2a22'
-  ctx.lineWidth = Math.max(1, r * 0.1)
-  ctx.lineCap = 'round'
-  ctx.lineJoin = 'round'
+  // ---------- Le visage ----------
+  if (a.barbe) boule(0, 0.56, 0.12, 0.17, a.cheveux, 0.12)
+  boule(-0.16, 0.62, 0.2, 0.045, 'rgba(255, 120, 120, 0.45)') // joues roses
+  boule(0.16, 0.62, 0.2, 0.045, 'rgba(255, 120, 120, 0.45)')
   for (const cote of [-1, 1]) {
-    const ex = x + cote * r * 0.38
     if (content) {
-      ctx.beginPath()
-      ctx.arc(ex, cy + r * 0.08, r * 0.13, Math.PI, 0) // œil plissé : un petit arc
-      ctx.stroke()
+      // œil plissé : un petit arc
+      trait(cote * 0.1, 0.7, 0.25, 0.025, (px, py) => ctx.arc(px, py + 0.01 * t, 0.035 * t, Math.PI, 0))
     } else {
-      disque(ex, cy + r * 0.05, r * 0.09, '#3a2a22')
+      boule(cote * 0.1, 0.7, 0.25, 0.028, ENCRE)
     }
+    if (a.lunettes) trait(cote * 0.1, 0.7, 0.27, 0.018, (px, py) => ctx.arc(px, py, 0.068 * t, 0, Math.PI * 2))
   }
-  ctx.beginPath()
-  ctx.arc(x, cy + r * 0.3, r * (content ? 0.3 : 0.2), 0.15, Math.PI - 0.15)
-  ctx.stroke()
-
-  // Lunettes
   if (a.lunettes) {
-    ctx.lineWidth = Math.max(1, r * 0.07)
-    for (const cote of [-1, 1]) {
-      ctx.beginPath()
-      ctx.arc(x + cote * r * 0.38, cy + r * 0.05, r * 0.25, 0, Math.PI * 2)
-      ctx.stroke()
-    }
-    ctx.beginPath()
-    ctx.moveTo(x - r * 0.13, cy + r * 0.05)
-    ctx.lineTo(x + r * 0.13, cy + r * 0.05)
-    ctx.stroke()
+    trait(0, 0.7, 0.27, 0.018, (px, py) => {
+      ctx.moveTo(px - 0.032 * t, py)
+      ctx.lineTo(px + 0.032 * t, py)
+    })
+  }
+  // La bouche (cachée par le bec quand il joue du saxophone)
+  if (!a.saxophone) {
+    trait(0, 0.61, 0.3, 0.025, (px, py) => ctx.arc(px, py - 0.03 * t, (content ? 0.08 : 0.055) * t, 0.2, Math.PI - 0.2))
   }
 
-  // Où sont les mains : le long du corps, ou sur le saxophone.
-  const epaule = hautCorps + t * 0.07
+  // ---------- Les bras, et le saxophone ----------
   let mains = [
-    [x - largeurCorps / 2 - t * 0.03, hautCorps + t * 0.26],
-    [x + largeurCorps / 2 + t * 0.03, hautCorps + t * 0.26],
+    [-0.29, 0.2, 0.04],
+    [0.29, 0.2, 0.04],
   ]
-
-  // Saxophone : un tube doré qui part de la bouche, descend, et remonte vers le pavillon
   if (a.saxophone) {
-    const [bx, by] = [x + r * 0.05, cy + r * 0.5] // le bec, à la bouche
-    const [cx2, cy2] = [x - t * 0.04, y - t * 0.2] // le bas du tube droit
-    const tube = () => {
-      ctx.beginPath()
-      ctx.moveTo(bx, by)
-      ctx.lineTo(cx2, cy2)
-      ctx.quadraticCurveTo(x - t * 0.03, y - t * 0.05, x + t * 0.1, y - t * 0.08)
-      ctx.lineTo(x + t * 0.17, y - t * 0.2)
-      ctx.stroke()
-    }
-    ctx.strokeStyle = '#b8862b'
-    ctx.lineWidth = t * 0.085
-    tube()
-    ctx.strokeStyle = '#e8b84a'
-    ctx.lineWidth = t * 0.06
-    tube()
-    ctx.strokeStyle = '#fbe6a2' // reflet
-    ctx.lineWidth = t * 0.015
-    tube()
-    // Le pavillon (l'ouverture évasée) et le bec noir
-    for (const [rayon, couleur] of [[0.085, '#e8b84a'], [0.055, '#8a6420']] as const) {
-      ctx.fillStyle = couleur
-      ctx.beginPath()
-      ctx.ellipse(x + t * 0.18, y - t * 0.22, t * rayon, t * rayon * 0.55, -0.5, 0, Math.PI * 2)
-      ctx.fill()
-    }
-    ctx.strokeStyle = '#2a2220'
-    ctx.lineWidth = t * 0.04
-    ctx.beginPath()
-    ctx.moveTo(bx, by)
-    ctx.lineTo(bx + (cx2 - bx) * 0.12, by + (cy2 - by) * 0.12)
-    ctx.stroke()
+    const bec = [0.01, 0.6, 0.27]
+    const coude = [-0.03, 0.2, 0.31] // le bas du tube droit
+    const OR = '#e8b84a'
+    boudin(bec, [bec[0] - 0.004, bec[1] - 0.05, bec[2] + 0.005], 0.028, '#2a2220', 2) // le bec noir
+    boudin([bec[0] - 0.005, bec[1] - 0.06, bec[2] + 0.006], coude, 0.036, OR, 22) // le tube
+    boudin(coude, [0.04, 0.1, 0.33], 0.04, OR, 8) // la courbe du bas
+    boudin([0.04, 0.1, 0.33], [0.15, 0.2, 0.33], 0.045, OR, 8) // la remontée
+    boule(0.18, 0.24, 0.33, 0.08, OR) // le pavillon…
+    boule(0.2, 0.26, 0.37, 0.05, '#8a6420') // …et son ouverture
     // Les mains se posent sur le tube, l'une au-dessus de l'autre.
-    mains = [0.45, 0.85].map((p) => [bx + (cx2 - bx) * p, by + (cy2 - by) * p])
+    mains = [0.4, 0.85].map((p) => bec.map((v, i) => v + (coude[i] - v) * p + (i === 2 ? 0.03 : 0)))
   }
-
-  // Bras (de l'épaule à la main) et mains
-  mains.forEach(([mx, my], i) => {
-    const ex = x + (i === 0 ? -1 : 1) * (largeurCorps / 2 - t * 0.04)
-    for (const couleur of [a.pull, 'rgba(0, 0, 0, 0.15)']) {
-      ctx.strokeStyle = couleur
-      ctx.lineWidth = t * 0.09
-      ctx.beginPath()
-      ctx.moveTo(ex, epaule)
-      ctx.lineTo(mx, my)
-      ctx.stroke()
-    }
-    disque(mx, my, t * 0.055, a.peau)
+  mains.forEach((main, i) => {
+    boudin([(i === 0 ? -1 : 1) * 0.2, 0.37, 0], main, 0.06, a.pull, 3)
+    boule(main[0], main[1], main[2] + 0.02, 0.055, a.peau)
   })
+
+  // ---------- Rotation, puis dessin du plus loin au plus proche ----------
+  const cos = Math.cos(angle)
+  const sin = Math.sin(angle)
+  pieces
+    .map((p) => ({ dessin: p.dessin, px: x + (p.x * cos + p.z * sin) * t, py: y - p.y * t, loin: p.z * cos - p.x * sin }))
+    .sort((p, q) => p.loin - q.loin)
+    .forEach((p) => p.dessin(p.px, p.py))
 }

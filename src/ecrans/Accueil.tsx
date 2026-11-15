@@ -22,6 +22,15 @@ interface Props {
   aller: (ecran: Ecran) => void
 }
 
+/** Un petit mot d'accueil selon l'heure. */
+function salutation(maintenant: number): string {
+  const heure = new Date(maintenant).getHours()
+  if (heure < 6) return 'Bonne nuit 🌙'
+  if (heure < 12) return 'Bonjour ☀️'
+  if (heure < 18) return 'Bon après-midi 🌤️'
+  return 'Bonsoir 🕯️'
+}
+
 export default function Accueil({ etat, maj, aller }: Props) {
   const maintenant = useMaintenant()
   const pasEncoreArrete = maintenant < etat.profil.dateArret
@@ -32,7 +41,16 @@ export default function Accueil({ etat, maj, aller }: Props) {
 
   return (
     <main className="avec-bouton-fixe">
+      {/* Une guirlande lumineuse en haut de la page. */}
+      <svg className="guirlande" viewBox="0 0 100 12" aria-hidden="true">
+        <path d="M0,2 Q50,14 100,2" />
+        {[...Array(11).keys()].map((n) => {
+          const p = (n + 0.5) / 11 // position le long du fil, de 0 à 1
+          return <circle key={n} className="etoile" cx={p * 100} cy={2 + 2 * p * (1 - p) * 12} r={1.3} style={{ animationDelay: `${n * 0.35}s` }} />
+        })}
+      </svg>
       <h1>Cagnotte</h1>
+      <p className="discret">{salutation(maintenant)}</p>
 
       {/* L'île est le cœur de la page : un tap l'ouvre pour construire. */}
       <button className="ile-accueil" onClick={() => aller('ile')}>

@@ -3,7 +3,7 @@
 // pour rester fluide sur téléphone.
 // Les règles sont dans logique/puzzle.ts ; ici il n'y a que le dessin et le doigt.
 import { useEffect, useRef, useState, type PointerEvent } from 'react'
-import { dessinerAvatar } from '../avatar'
+import { ANIME, balancement, dessinerAvatar } from '../avatar'
 import { PUZZLE_TAILLE as N } from '../config'
 import type { Avatar } from '../logique/types'
 import { son } from '../sons'
@@ -87,6 +87,8 @@ export default function MiniJeu({ record, onRecord, avatars }: Props) {
     if (!ctx) return
     const { partie, glisse, cote, largeur } = jeu
     ctx.clearRect(0, 0, largeur, hauteurTotale())
+    /** L'heure, en millisecondes : elle fait bouger le feu, les braises et les avatars. */
+    const t = ANIME ? performance.now() : 0
 
     /** Dessine un rectangle aux coins arrondis. */
     const rect = (x: number, y: number, l: number, h: number, rayon: number, couleur: string | CanvasGradient) => {
@@ -138,14 +140,22 @@ export default function MiniJeu({ record, onRecord, avatars }: Props) {
       [0, 0.95, '#f2a03d'],
       [0, 0.5, '#ffe08a'],
     ] as const
-    for (const [dx, taille, couleur] of flammes) {
+    flammes.forEach(([dx, tailleFixe, couleur], n) => {
+      const taille = tailleFixe * (1 + 0.12 * Math.sin(t / 130 + n * 2)) // chaque flamme vacille à son rythme
       ctx.fillStyle = couleur
       ctx.beginPath()
       ctx.ellipse(largeur / 2 + dx * cote, sol - cote * (0.15 + taille / 2), cote * 0.2 * taille + 3, (cote * taille) / 2, 0, 0, Math.PI * 2)
       ctx.fill()
+    })
+    // Braises : des étincelles qui montent du feu en zigzaguant, puis s'éteignent.
+    for (let n = 0; n < 6; n++) {
+      const p = (t / 3200 + n / 6) % 1 // de 0 (dans le feu) à 1 (éteinte)
+      ctx.globalAlpha = 1 - p
+      rect(largeur / 2 + Math.sin(n * 7 + p * 6) * cote * 0.45 - 1.5, sol - cote * (0.9 + p * 1.3), 3, 3, 1.5, '#ffcf7a')
     }
+    ctx.globalAlpha = 1
     const content = jeu.flash.length > 0 // une ligne vient d'être complétée : ils sautent de joie
-    const taille = cote * 1.55
+    const taille = cote * 1.4
     avatars.forEach((avatar, i) => {
       const x = largeur * (i === 0 ? 0.2 : 0.8)
       const pieds = sol - (content ? cote * 0.25 : 0)
@@ -153,12 +163,14 @@ export default function MiniJeu({ record, onRecord, avatars }: Props) {
       ctx.beginPath()
       ctx.ellipse(x, sol, cote * 0.55, cote * 0.1, 0, 0, Math.PI * 2) // ombre au sol
       ctx.fill()
-      dessinerAvatar(ctx, avatar, x, pieds, taille, content)
+      // Chacun est tourné vers le feu, et se balance doucement.
+      const angle = (i === 0 ? 0.35 : -0.35) + (ANIME ? balancement(t, i * 2) * 0.6 : 0)
+      dessinerAvatar(ctx, avatar, x, pieds, taille, content, angle)
       ctx.fillStyle = '#c9b8a8'
       ctx.font = '11px system-ui'
       ctx.textAlign = 'center'
       ctx.textBaseline = 'alphabetic'
-      ctx.fillText(String(avatar.nom).slice(0, 14), x, pieds - taille - 5)
+      ctx.fillText(String(avatar.nom).slice(0, 14), x, pieds - taille * 1.1 - 4)
     })
 
     // 2. Le plateau en bois (avec sa tranche) et la grille
@@ -224,6 +236,13 @@ export default function MiniJeu({ record, onRecord, avatars }: Props) {
     canvas.style.height = `${hauteur}px`
     canvas.getContext('2d')!.scale(densite, densite)
     dessiner()
+    if (!ANIME) return
+    // Le décor est vivant : on redessine le jeu à chaque image affichée.
+    let image = requestAnimationFrame(function boucle() {
+      dessiner()
+      image = requestAnimationFrame(boucle)
+    })
+    return () => cancelAnimationFrame(image) // arrêt quand on quitte le jeu
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 

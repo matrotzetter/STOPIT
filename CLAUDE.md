@@ -91,5 +91,11 @@ commenter le code en français, ne pas supposer qu'il connaît les outils.
   `formesEnJeu(score)` fait glisser un groupe de `PUZZLE_FORMES_EN_JEU` formes d'un
   cran tous les `PUZZLE_POINTS_PAR_CRAN` points.
 
+- [x] (k) avatars en vraie 3D sans bibliothèque : `dessinerAvatar` assemble des
+  boules placées dans l'espace, les fait tourner selon `angle` et les dessine de la
+  plus loin à la plus proche. Animations (balancement, feu, braises, lucioles,
+  vagues, guirlande) coupées par `ANIME` / `prefers-reduced-motion`. Le mini-jeu
+  se redessine à chaque image (`requestAnimationFrame`).
+
 À chaque fin d'étape : lancer l'app, exécuter les tests, dire quoi tester, faire
 un commit, attendre le retour de l'utilisateur.

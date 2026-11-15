@@ -1,7 +1,7 @@
 // Écran « Mes avatars » : régler l'apparence des deux personnages du mini-jeu.
 import { useEffect, useRef } from 'react'
 import type { Ecran } from '../App'
-import { avatarsDe, dessinerAvatar } from '../avatar'
+import { ANIME, avatarsDe, balancement, dessinerAvatar } from '../avatar'
 import { COIFFURES } from '../config'
 import type { Avatar, Etat } from '../logique/types'
 
@@ -14,16 +14,30 @@ interface Props {
 /** Taille de l'aperçu, en pixels. */
 const APERCU = 120
 
-/** Petit dessin de l'avatar, refait à chaque changement. */
-export function Apercu({ avatar, className = 'apercu-avatar' }: { avatar: Avatar; className?: string }) {
+interface PropsApercu {
+  avatar: Avatar
+  className?: string
+  /** Décale le balancement, pour que deux avatars côte à côte ne bougent pas ensemble. */
+  decalage?: number
+}
+
+/** Petit dessin animé de l'avatar : il se tourne doucement d'un côté puis de l'autre. */
+export function Apercu({ avatar, className = 'apercu-avatar', decalage = 0 }: PropsApercu) {
   const ref = useRef<HTMLCanvasElement>(null)
   useEffect(() => {
     const ctx = ref.current!.getContext('2d')!
-    // On dessine deux fois plus grand que l'affichage, pour rester net sur téléphone.
-    ctx.clearRect(0, 0, APERCU * 2, APERCU * 2)
-    dessinerAvatar(ctx, avatar, APERCU, APERCU * 2 - 8, APERCU * 2 - 30)
+    let image = 0
+    const dessiner = (t: number) => {
+      // On dessine deux fois plus grand que l'affichage, pour rester net sur téléphone.
+      ctx.clearRect(0, 0, APERCU * 2, APERCU * 2)
+      dessinerAvatar(ctx, avatar, APERCU, APERCU * 2 - 8, APERCU * 2 - 44, false, ANIME ? balancement(t, decalage) : 0)
+      // requestAnimationFrame : « rappelle-moi juste avant la prochaine image affichée ».
+      if (ANIME) image = requestAnimationFrame(dessiner)
+    }
+    dessiner(performance.now())
+    return () => cancelAnimationFrame(image) // arrête l'animation quand l'avatar change ou disparaît
   })
-  return <canvas ref={ref} className={className}width={APERCU * 2} height={APERCU * 2} aria-hidden="true" />
+  return <canvas ref={ref} className={className} width={APERCU * 2} height={APERCU * 2} aria-hidden="true" />
 }
 
 export default function Avatars({ etat, maj, aller }: Props) {

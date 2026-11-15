@@ -62,7 +62,7 @@ h1 {
   font-size: 1.9rem;
   font-weight: 800;
   letter-spacing: -0.02em;
-  margin: 0 0 14px;
+  margin: 0 0 10px;
   /* Titre en dégradé : le texte sert de « pochoir » au fond coloré. */
   background: var(--degrade);
   -webkit-background-clip: text;
@@ -352,8 +352,8 @@ svg.ile [role='button'] {
   cursor: pointer;
 }
 
-/* Les étoiles scintillent doucement. */
-svg.ile .etoile {
+/* Les étoiles et les ampoules scintillent doucement. */
+.etoile {
   animation: scintille 3s ease-in-out infinite;
 }
 
@@ -361,6 +361,63 @@ svg.ile .etoile {
   50% {
     opacity: 0.25;
   }
+}
+
+/* Lucioles : des points de lumière qui flottent au-dessus de l'île */
+svg.ile .luciole {
+  fill: #ffe08a;
+  filter: drop-shadow(0 0 1.5px #ffcf6a);
+  opacity: 0;
+  animation: luciole 8s ease-in-out infinite;
+}
+
+@keyframes luciole {
+  20% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+    transform: translate(5px, -7px);
+  }
+  80% {
+    opacity: 1;
+    transform: translate(-3px, -11px);
+  }
+}
+
+/* Vagues : de petits traits clairs qui glissent sur la mer */
+svg.ile .vague {
+  fill: none;
+  stroke: rgba(255, 255, 255, 0.35);
+  stroke-width: 0.6;
+  stroke-linecap: round;
+  animation: vague 5s ease-in-out infinite;
+}
+
+@keyframes vague {
+  50% {
+    opacity: 0.2;
+    transform: translateX(3px);
+  }
+}
+
+/* Guirlande lumineuse en haut de l'accueil */
+svg.guirlande {
+  display: block;
+  width: 100%;
+  margin-bottom: 4px;
+  overflow: visible;
+}
+
+svg.guirlande path {
+  fill: none;
+  stroke: rgba(255, 255, 255, 0.25);
+  stroke-width: 0.3;
+}
+
+svg.guirlande circle {
+  fill: #ffd98a;
+  filter: drop-shadow(0 0 2px #ffb86b);
 }
 
 canvas.avatar-ile {
