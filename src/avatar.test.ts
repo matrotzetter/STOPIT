@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { avatarsDe } from './avatar'
+import { CALQUES, HAUTEUR_AVATAR, LARGEUR_AVATAR, avatarsDe } from './avatar'
 import { AVATARS_DEFAUT } from './config'
 import type { Etat } from './logique/types'
 
@@ -15,5 +15,17 @@ describe('avatarsDe', () => {
     expect(avatars).toHaveLength(2)
     expect(avatars[0]).toEqual({ ...AVATARS_DEFAUT[0], nom: 'Mat', barbe: true })
     expect(avatars[1]).toEqual(AVATARS_DEFAUT[1])
+  })
+})
+
+describe('dessins en pixels', () => {
+  it('chaque ligne de chaque calque a la bonne largeur et tient dans l’image', () => {
+    for (const calque of Object.values(CALQUES)) {
+      for (const [ligne, texte] of calque) {
+        expect(texte).toHaveLength(LARGEUR_AVATAR)
+        expect(ligne).toBeLessThan(HAUTEUR_AVATAR)
+        expect(texte).toMatch(/^[.oscmpkhlngG]+$/) // uniquement des lettres qui ont une couleur
+      }
+    }
   })
 })

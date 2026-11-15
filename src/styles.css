@@ -715,3 +715,9 @@ input[type='color'] {
 .tuiles .discret {
   padding-right: 38px;
 }
+
+/* Avatars en pixel art : les gros pixels restent nets quand le dessin est agrandi ou réduit. */
+canvas.apercu-avatar,
+canvas.avatar-ile {
+  image-rendering: pixelated;
+}
