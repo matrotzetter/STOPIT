@@ -5,14 +5,15 @@ import { NOM_UNITE, chf, duree, texteManque } from '../format'
 import {
   cagnotte,
   cleJour,
-  cristaux,
   meilleureSerieMs,
   prochaineRecompense,
   serieMs,
   tempsCumuleMs,
   unitesNonConsommees,
 } from '../logique/calculs'
+import { energie, soldeCristaux } from '../logique/ile'
 import type { Etat } from '../logique/types'
+import { CarteIle } from './Ile'
 import { useMaintenant } from '../useMaintenant'
 
 interface Props {
@@ -85,12 +86,21 @@ export default function Accueil({ etat, maj, aller }: Props) {
         Mes récompenses
       </button>
 
+      {/* Aperçu de l'île : un tap ouvre le jeu. */}
+      <button className="apercu-ile" onClick={() => aller('ile')}>
+        <CarteIle etat={etat} maintenant={maintenant} />
+        <span>
+          Mon île
+          <br />⚡ {Math.floor(energie(etat, maintenant))} · 💎 {soldeCristaux(etat, maintenant)}
+        </span>
+      </button>
+
       {!pasEncoreArrete && (
         <section className="carte">
           {rechuteAujourdhui ? (
             <p>Rechute notée aujourd'hui. Tu repars de là.</p>
           ) : checkinFait ? (
-            <p>✅ Check-in fait aujourd'hui · 💎 {cristaux(etat, maintenant)} cristaux</p>
+            <p>✅ Check-in fait aujourd'hui</p>
           ) : (
             <>
               <p>Toujours sans nicotine aujourd'hui ?</p>

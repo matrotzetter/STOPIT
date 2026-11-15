@@ -226,6 +226,48 @@ button.puce.choisie {
   }
 }
 
+/* L'île */
+svg.ile {
+  display: block;
+  width: 100%;
+  border-radius: 12px;
+  margin-bottom: 12px;
+  touch-action: manipulation; /* pas de zoom au double tap sur la carte */
+}
+
+svg.ile [role='button'] {
+  cursor: pointer;
+}
+
+/* Aperçu sur l'accueil : petite carte à gauche, texte à droite */
+button.apercu-ile {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 12px;
+  margin-bottom: 12px;
+  background: var(--carte);
+  color: var(--texte);
+  border: 1px solid var(--bord);
+  text-align: left;
+}
+
+button.apercu-ile svg.ile {
+  width: 96px;
+  margin: 0;
+}
+
+/* Ligne du catalogue : nom à gauche, coût à droite */
+button.choix-batiment {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  padding: 0 12px;
+  font-weight: 400;
+  text-align: right;
+}
+
 /* Formulaires */
 fieldset {
   border: 0;

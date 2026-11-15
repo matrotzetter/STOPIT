@@ -9,7 +9,9 @@ const CLE = 'cagnotte-etat'
 export function charger(): Etat | null {
   try {
     const texte = localStorage.getItem(CLE)
-    return texte ? (JSON.parse(texte) as Etat) : null
+    if (!texte) return null
+    // « batiments: [] » d'abord : les données enregistrées avant l'arrivée de l'île n'ont pas ce champ.
+    return { batiments: [], ...JSON.parse(texte) } as Etat
   } catch {
     // Stockage indisponible ou données illisibles : on repart du premier lancement.
     return null

@@ -67,6 +67,7 @@ export default function PremierLancement({ onTermine }: { onTermine: (etat: Etat
       rechutes: [],
       envies: [],
       checkins: [],
+      batiments: [],
     })
   }
 

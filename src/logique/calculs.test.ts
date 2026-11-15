@@ -24,6 +24,7 @@ const base: Etat = {
   rechutes: [],
   envies: [],
   checkins: [],
+  batiments: [],
 }
 
 describe('sans rechute', () => {

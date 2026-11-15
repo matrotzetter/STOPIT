@@ -36,9 +36,20 @@ commenter le code en français, ne pas supposer qu'il connaît les outils.
 - Récompense débloquée si série ≥ palier ET cagnotte ≥ prix.
 - Cristaux = gain fixe par check-in, par envie surmontée, par palier de jours
   cumulés atteint. Jamais convertis en argent.
-- À venir (étape d) : énergie = heures cumulées × taux − dépenses ; zones de l'île
-  selon les jours cumulés (3, 7, 14, 30, 60, 90) ; après une rechute, la dernière
-  zone se recouvre de brume et se redégage en 3 jours.
+
+## Règles de l'île (`src/logique/ile.ts`)
+
+- Carte 8 × 8 décrite dans `CARTE` (`config.ts`) : chaque chiffre = zone de la case.
+- La zone i s'ouvre à `PALIERS_JOURS[i]` jours cumulés (3, 7, 14, 30, 60, 90), puis
+  se dégage case par case en 3 jours, de la côte vers le sommet.
+- Rechute : la dernière zone ouverte se recouvre, puis se redégage en 3 jours.
+  Les bâtiments sous la brume sont conservés mais cachés.
+- Énergie = heures cumulées × 10 − énergie dépensée. Cristaux disponibles =
+  cristaux gagnés − cristaux dépensés. Les dépenses sont recalculées à partir des
+  bâtiments posés (pas de compteur enregistré).
+- Bâtiments : coût en énergie, améliorables jusqu'au niveau 3 (énergie + cristaux).
+  Décorations : coût en cristaux, non améliorables. Purement visuels.
+- Monuments : un trophée par récompense encaissée, sur la plage sous la carte.
 
 ## Avancement
 
@@ -47,7 +58,7 @@ commenter le code en français, ne pas supposer qu'il connaît les outils.
   l'étape e ; le minuteur se calcule depuis l'heure de départ)
 - [x] (c) récompenses + rechute (une récompense encaissée n'est plus modifiable ni
   supprimable : son prix resterait sinon dans la cagnotte)
-- [ ] (d) île : grille, brume, énergie, bâtiments
+- [x] (d) île : grille, brume, énergie, bâtiments
 - [ ] (e) mini-jeu + cristaux
 - [ ] (f) statistiques + réglages
 - [ ] (g) PWA + mise en ligne GitHub Pages (téléphone : iPhone)

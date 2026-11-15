@@ -43,6 +43,15 @@ export interface Envie {
   declencheur?: string
 }
 
+/** Un bâtiment ou une décoration posé sur l'île. */
+export interface Batiment {
+  /** Numéro de la case, de 0 (en haut à gauche) à 63 (en bas à droite). */
+  case: number
+  /** Identifiant dans le CATALOGUE de config.ts. */
+  type: string
+  niveau: number
+}
+
 export interface Etat {
   version: 1
   profil: Profil
@@ -51,4 +60,5 @@ export interface Etat {
   envies: Envie[]
   /** Jours où le check-in a été fait, au format « 2026-11-15 ». */
   checkins: string[]
+  batiments: Batiment[]
 }
