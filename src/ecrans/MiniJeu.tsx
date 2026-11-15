@@ -13,7 +13,7 @@ import { estBloquee, jouerCoup, nouvellePartie, peutPoser, type Forme, type Part
 const COULEURS = ['#5a3d2b', '#9cc5a1', '#f2c14e', '#e8a0a8', '#f4a26b']
 
 /** Taille des formes en attente, par rapport aux cases de la grille. */
-const ECHELLE_MAIN = 0.6
+const ECHELLE_MAIN = 0.5
 
 /** Marge entre le bord du plateau et les cases, en pixels. */
 const MARGE = 8

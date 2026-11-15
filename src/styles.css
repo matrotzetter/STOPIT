@@ -1,13 +1,18 @@
-/* Thème sombre, pensé pour un téléphone tenu d'une main. */
+/* Thème « soirée au coin du feu » : nuit prune, lumières ambrées.
+   Pensé pour un téléphone tenu d'une main. Toutes les couleurs sont ici. */
 
 :root {
-  --fond: #0f1419;
-  --carte: #1a222c;
-  --bord: #2c3846;
-  --texte: #e8edf2;
-  --discret: #9aa7b5;
-  --accent: #4fd1a5; /* vert : actions principales */
-  --or: #f2c14e; /* cagnotte */
+  --fond: #15101d;
+  --carte: #261d33;
+  --carte-haut: #30253f; /* haut des cartes, un peu plus clair : effet de relief */
+  --bord: rgba(255, 255, 255, 0.1);
+  --texte: #f7efe6;
+  --discret: #b9abc2;
+  --accent: #ffb86b; /* ambre : actions principales */
+  --accent-2: #ff7a8a; /* corail : fin des dégradés */
+  --degrade: linear-gradient(135deg, var(--accent), var(--accent-2));
+  --or: #ffd166; /* cagnotte */
+  --ombre: 0 10px 30px rgba(0, 0, 0, 0.35);
   color-scheme: dark;
 }
 
@@ -17,11 +22,19 @@
 
 body {
   margin: 0;
-  background: var(--fond);
+  min-height: 100vh;
+  /* Une lueur chaude en haut de l'écran, qui s'éteint vers le bas. */
+  background:
+    radial-gradient(120% 55% at 50% 0%, #46305a 0%, rgba(70, 48, 90, 0) 70%),
+    radial-gradient(80% 40% at 100% 100%, rgba(255, 122, 138, 0.1) 0%, rgba(255, 122, 138, 0) 70%),
+    var(--fond);
+  background-attachment: fixed;
   color: var(--texte);
-  font-family: system-ui, sans-serif;
+  /* ui-rounded : la police arrondie de l'iPhone ; sinon la police normale de l'appareil. */
+  font-family: ui-rounded, 'SF Pro Rounded', system-ui, sans-serif;
   font-size: 17px;
   line-height: 1.4;
+  -webkit-font-smoothing: antialiased;
 }
 
 main {
@@ -29,6 +42,14 @@ main {
   margin: 0 auto;
   /* env(...) : marge supplémentaire pour l'encoche et la barre du bas des téléphones */
   padding: calc(16px + env(safe-area-inset-top)) 16px calc(16px + env(safe-area-inset-bottom));
+  animation: apparition 0.25s ease-out;
+}
+
+/* Chaque écran apparaît en douceur. */
+@keyframes apparition {
+  from {
+    opacity: 0; /* pas de déplacement : il décrocherait le bouton fixé en bas */
+  }
 }
 
 /* Laisse la place du bouton « J'ai une envie » fixé en bas. */
@@ -37,8 +58,20 @@ main.avec-bouton-fixe {
 }
 
 h1 {
-  font-size: 1.5rem;
-  margin: 0 0 12px;
+  width: fit-content;
+  font-size: 1.9rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  margin: 0 0 14px;
+  /* Titre en dégradé : le texte sert de « pochoir » au fond coloré. */
+  background: var(--degrade);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.centre h1 {
+  margin-inline: auto;
 }
 
 p {
@@ -51,11 +84,12 @@ p {
 }
 
 .carte {
-  background: var(--carte);
+  background: linear-gradient(180deg, var(--carte-haut), var(--carte));
   border: 1px solid var(--bord);
-  border-radius: 14px;
-  padding: 14px;
+  border-radius: 20px;
+  padding: 16px;
   margin-bottom: 12px;
+  box-shadow: var(--ombre);
 }
 
 .centre {
@@ -64,14 +98,18 @@ p {
 
 .grand {
   font-size: 1.7rem;
-  font-weight: 700;
+  font-weight: 800;
   font-variant-numeric: tabular-nums; /* chiffres de largeur fixe : le compteur ne « saute » pas */
   margin: 0;
+  background: linear-gradient(135deg, #fff3d6, var(--or) 45%, var(--accent-2));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
 }
 
 .valeur {
   font-size: 1.15rem;
-  font-weight: 600;
+  font-weight: 700;
   margin: 0;
   font-variant-numeric: tabular-nums;
 }
@@ -88,7 +126,22 @@ p {
 }
 
 .tuiles .carte {
+  position: relative;
   margin: 0;
+}
+
+/* Petite pastille avec un emoji, dans le coin de chaque tuile */
+.icone {
+  display: grid;
+  place-items: center;
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 34px;
+  height: 34px;
+  border-radius: 12px;
+  background: rgba(255, 184, 107, 0.14);
+  font-size: 1.2rem;
 }
 
 .rangee {
@@ -106,10 +159,29 @@ p {
 }
 
 progress {
+  display: block;
   width: 100%;
   height: 12px;
-  margin: 8px 0;
-  accent-color: var(--accent);
+  margin: 10px 0;
+  border: 0;
+  border-radius: 999px;
+  overflow: hidden;
+  background: rgba(0, 0, 0, 0.35);
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+progress::-webkit-progress-bar {
+  background: rgba(0, 0, 0, 0.35);
+}
+
+progress::-webkit-progress-value {
+  background: var(--degrade);
+  border-radius: 999px;
+}
+
+progress::-moz-progress-bar {
+  background: var(--degrade);
 }
 
 /* Boutons : gros, faciles à toucher */
@@ -117,18 +189,27 @@ button {
   width: 100%;
   min-height: 56px;
   border: 0;
-  border-radius: 14px;
-  background: var(--accent);
-  color: #06281d;
+  border-radius: 18px;
+  background: var(--degrade);
+  color: #2b1420;
   font: inherit;
-  font-weight: 700;
+  font-weight: 800;
   cursor: pointer;
+  box-shadow: 0 8px 22px rgba(255, 122, 138, 0.28);
+  transition: transform 0.12s ease-out;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Le bouton s'enfonce légèrement sous le doigt. */
+button:active:not(:disabled) {
+  transform: scale(0.97);
 }
 
 button.secondaire {
-  background: transparent;
+  background: rgba(255, 255, 255, 0.06);
   color: var(--texte);
   border: 1px solid var(--bord);
+  box-shadow: none;
 }
 
 .bouton-envie {
@@ -138,8 +219,28 @@ button.secondaire {
   bottom: calc(16px + env(safe-area-inset-bottom));
   width: min(448px, calc(100% - 32px));
   min-height: 72px;
-  font-size: 1.25rem;
-  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.6);
+  font-size: 1.3rem;
+  border-radius: 24px;
+  animation: halo 3s ease-in-out infinite;
+}
+
+.bouton-envie:active:not(:disabled) {
+  transform: translateX(-50%) scale(0.97);
+}
+
+/* Le bouton principal « respire » : son halo grandit et rétrécit lentement. */
+@keyframes halo {
+  0%,
+  100% {
+    box-shadow:
+      0 8px 24px rgba(0, 0, 0, 0.5),
+      0 0 0 0 rgba(255, 184, 107, 0.45);
+  }
+  50% {
+    box-shadow:
+      0 8px 24px rgba(0, 0, 0, 0.5),
+      0 0 0 10px rgba(255, 184, 107, 0);
+  }
 }
 
 button:disabled {
@@ -170,15 +271,19 @@ button.puce {
   min-height: 48px;
   margin: 0;
   padding: 0 14px;
-  background: transparent;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.06);
   color: var(--texte);
   border: 1px solid var(--bord);
-  font-weight: 400;
+  font-weight: 500;
+  box-shadow: none;
 }
 
 button.puce.choisie {
-  border-color: var(--accent);
-  color: var(--accent);
+  background: var(--degrade);
+  border-color: transparent;
+  color: #2b1420;
+  font-weight: 800;
 }
 
 /* Respiration guidée */
@@ -195,7 +300,8 @@ button.puce.choisie {
   width: 240px;
   height: 240px;
   border-radius: 50%;
-  background: radial-gradient(circle, rgba(79, 209, 165, 0.55), rgba(79, 209, 165, 0.12));
+  background: radial-gradient(circle, rgba(255, 209, 102, 0.6), rgba(255, 122, 138, 0.12));
+  box-shadow: 0 0 60px rgba(255, 184, 107, 0.35);
   transition-property: transform;
   transition-timing-function: ease-in-out;
 }
@@ -203,7 +309,7 @@ button.puce.choisie {
 .consigne {
   position: relative; /* au-dessus du cercle */
   font-size: 1.4rem;
-  font-weight: 700;
+  font-weight: 800;
   margin: 0;
 }
 
@@ -212,6 +318,7 @@ button.puce.choisie {
   font-size: 5rem;
   margin: 48px 0 8px;
   animation: rebond 0.7s ease-out;
+  filter: drop-shadow(0 0 24px rgba(255, 209, 102, 0.6));
 }
 
 @keyframes rebond {
@@ -236,12 +343,24 @@ button.puce.choisie {
 svg.ile {
   display: block;
   width: 100%;
-  border-radius: 12px;
+  border-radius: 20px;
+  box-shadow: var(--ombre);
   touch-action: manipulation; /* pas de zoom au double tap sur la carte */
 }
 
 svg.ile [role='button'] {
   cursor: pointer;
+}
+
+/* Les étoiles scintillent doucement. */
+svg.ile .etoile {
+  animation: scintille 3s ease-in-out infinite;
+}
+
+@keyframes scintille {
+  50% {
+    opacity: 0.25;
+  }
 }
 
 canvas.avatar-ile {
@@ -264,10 +383,16 @@ button.ile-accueil {
   display: block;
   padding: 0 0 12px;
   margin-bottom: 12px;
-  background: var(--carte);
+  border-radius: 22px;
+  background: linear-gradient(180deg, var(--carte-haut), var(--carte));
   color: var(--texte);
   border: 1px solid var(--bord);
-  font-weight: 400;
+  font-weight: 600;
+  box-shadow: var(--ombre);
+}
+
+button.ile-accueil svg.ile {
+  box-shadow: none;
 }
 
 /* Ligne du catalogue : nom à gauche, coût à droite */
@@ -276,8 +401,8 @@ button.choix-batiment {
   justify-content: space-between;
   align-items: center;
   gap: 8px;
-  padding: 0 12px;
-  font-weight: 400;
+  padding: 0 14px;
+  font-weight: 500;
   text-align: right;
 }
 
@@ -286,6 +411,8 @@ button.choix-batiment {
   display: block;
   width: 100%;
   margin-bottom: 12px;
+  border-radius: 16px;
+  box-shadow: var(--ombre);
   touch-action: none; /* le doigt déplace les formes au lieu de faire défiler la page */
   user-select: none;
   -webkit-user-select: none;
@@ -299,7 +426,7 @@ button.choix-batiment {
 .barres {
   display: flex;
   align-items: flex-end;
-  gap: 2px;
+  gap: 3px;
   height: 140px;
 }
 
@@ -323,8 +450,8 @@ button.choix-batiment {
 .barres .barre {
   width: 100%;
   min-height: 2px; /* une ligne de base reste visible quand la valeur est zéro */
-  background: var(--accent);
-  border-radius: 4px 4px 0 0;
+  background: linear-gradient(180deg, var(--accent), var(--accent-2));
+  border-radius: 6px 6px 0 0;
 }
 
 .barres .nombre,
@@ -345,8 +472,8 @@ button.choix-batiment {
 
 .ligne-declencheur .barre {
   height: 14px;
-  background: var(--accent);
-  border-radius: 0 4px 4px 0;
+  background: var(--degrade);
+  border-radius: 999px;
 }
 
 .ligne-declencheur .nombre {
@@ -378,16 +505,17 @@ label.bouton {
   min-height: 56px;
   margin: 12px 0 0;
   border: 1px solid var(--bord);
-  border-radius: 14px;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.06);
   color: var(--texte);
   font-size: 1rem;
-  font-weight: 700;
+  font-weight: 800;
   cursor: pointer;
 }
 
 button.danger {
   color: #ff8a80;
-  border-color: #ff8a80;
+  border-color: rgba(255, 138, 128, 0.6);
 }
 
 a {
@@ -402,7 +530,7 @@ fieldset {
 }
 
 legend {
-  font-weight: 700;
+  font-weight: 800;
   font-size: 1.1rem;
   margin-bottom: 8px;
   padding: 0;
@@ -417,6 +545,7 @@ label {
 
 h2 {
   font-size: 1.15rem;
+  font-weight: 800;
   margin: 24px 0 8px;
 }
 
@@ -437,13 +566,22 @@ textarea {
   width: 100%;
   min-height: 52px;
   margin: 4px 0 12px;
-  padding: 0 12px;
+  padding: 0 14px;
   border: 1px solid var(--bord);
-  border-radius: 12px;
-  background: var(--fond);
+  border-radius: 14px;
+  background: rgba(0, 0, 0, 0.3);
   color: var(--texte);
   /* 17px : en dessous de 16px, l'iPhone zoome quand on touche un champ */
   font: inherit;
+}
+
+/* Contour ambré autour de l'élément actif (champ en cours de saisie, navigation au clavier) */
+input:focus-visible,
+textarea:focus-visible,
+button:focus-visible,
+[role='button']:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
 }
 
 /* Groupe de choix (boutons radio présentés comme de grosses pastilles) */
@@ -462,7 +600,8 @@ textarea {
   margin: 0;
   padding: 0 12px;
   border: 1px solid var(--bord);
-  border-radius: 12px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.04);
   color: var(--texte);
   font-size: 1rem;
   cursor: pointer;
@@ -470,6 +609,7 @@ textarea {
 
 .choix label.choisi {
   border-color: var(--accent);
+  background: rgba(255, 184, 107, 0.12);
 }
 
 .choix input {
@@ -500,6 +640,21 @@ input[type='color'] {
   margin-top: 4px;
   padding: 2px;
   border: 1px solid var(--bord);
-  border-radius: 12px;
-  background: var(--fond);
+  border-radius: 14px;
+  background: rgba(0, 0, 0, 0.3);
+}
+
+/* Pour les personnes qui ont demandé moins d'animations à leur appareil */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
+/* Le titre de la tuile laisse la place de la pastille. */
+.tuiles .discret {
+  padding-right: 38px;
 }

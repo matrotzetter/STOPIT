@@ -56,20 +56,24 @@ export default function Accueil({ etat, maj, aller }: Props) {
 
       <section className="tuiles">
         <div className="carte">
+          <span className="icone" aria-hidden="true">💰</span>
           <p className="discret">Cagnotte</p>
           <p className="valeur or">{chf(cagnotte(etat, maintenant))}</p>
         </div>
         <div className="carte">
+          <span className="icone" aria-hidden="true">🚭</span>
           <p className="discret">Non consommé</p>
           <p className="valeur">
             {Math.floor(unitesNonConsommees(etat, maintenant))} {NOM_UNITE[etat.profil.produit]}
           </p>
         </div>
         <div className="carte">
+          <span className="icone" aria-hidden="true">🔥</span>
           <p className="discret">Série en cours</p>
           <p className="valeur">{duree(serieMs(etat, maintenant))}</p>
         </div>
         <div className="carte">
+          <span className="icone" aria-hidden="true">🏅</span>
           <p className="discret">Meilleure série</p>
           <p className="valeur">{duree(meilleureSerieMs(etat, maintenant))}</p>
         </div>
@@ -91,7 +95,7 @@ export default function Accueil({ etat, maj, aller }: Props) {
       )}
 
       <button className="secondaire espace" onClick={() => aller('recompenses')}>
-        Mes récompenses
+        🎁 Mes récompenses
       </button>
 
       {!pasEncoreArrete && (
@@ -116,10 +120,10 @@ export default function Accueil({ etat, maj, aller }: Props) {
 
       <div className="rangee">
         <button className="secondaire" onClick={() => aller('stats')}>
-          Statistiques
+          📊 Statistiques
         </button>
         <button className="secondaire" onClick={() => aller('reglages')}>
-          Réglages
+          ⚙️ Réglages
         </button>
       </div>
 

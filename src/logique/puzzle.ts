@@ -1,7 +1,15 @@
 // Règles du mini-jeu : on pose des formes sur une grille ; une ligne ou une
 // colonne entièrement remplie s'efface. Fonctions pures, sans affichage.
 
-import { DESSINS_FORMES, POINTS_PAR_CASE, POINTS_PAR_LIGNE, PUZZLE_TAILLE as N } from '../config'
+import {
+  DESSINS_FORMES,
+  POINTS_PAR_CASE,
+  POINTS_PAR_LIGNE,
+  PUZZLE_FORMES_EN_JEU,
+  PUZZLE_POINTS_PAR_CRAN,
+  PUZZLE_TAILLE as N,
+} from '../config'
+
 
 export interface Forme {
   /** Positions [colonne, ligne] des cases pleines, à partir du coin haut gauche. */
@@ -28,13 +36,20 @@ export interface Partie {
   score: number
 }
 
+/** Les formes qui peuvent être proposées à ce score : plus le score monte, plus elles sont difficiles. */
+export function formesEnJeu(score: number): Forme[] {
+  const debut = Math.min(FORMES.length - PUZZLE_FORMES_EN_JEU, Math.floor(score / PUZZLE_POINTS_PAR_CRAN))
+  return FORMES.slice(debut, debut + PUZZLE_FORMES_EN_JEU)
+}
+
 /** Tire 3 formes au hasard. « hasard » renvoie un nombre entre 0 et 1 (remplaçable dans les tests). */
-function tirerMain(hasard: () => number): Forme[] {
-  return [0, 1, 2].map(() => FORMES[Math.floor(hasard() * FORMES.length)])
+function tirerMain(hasard: () => number, score: number): Forme[] {
+  const formes = formesEnJeu(score)
+  return [0, 1, 2].map(() => formes[Math.floor(hasard() * formes.length)])
 }
 
 export function nouvellePartie(hasard: () => number = Math.random): Partie {
-  return { grille: new Array(N * N).fill(0), main: tirerMain(hasard), score: 0 }
+  return { grille: new Array(N * N).fill(0), main: tirerMain(hasard, 0), score: 0 }
 }
 
 /** La forme tient-elle à cet endroit (coin haut gauche en colonne x, ligne y) ? */
@@ -82,13 +97,13 @@ export function jouerCoup(
   ]
   for (const i of effacees) grille[i] = 0
 
-  let main = partie.main.map((f, i) => (i === indexMain ? null : f))
-  // Les 3 formes sont posées : on en tire 3 nouvelles.
-  if (main.every((f) => f === null)) main = tirerMain(hasard)
-
   const score =
     partie.score +
     forme.cases.length * POINTS_PAR_CASE +
     (lignesPleines.length + colonnesPleines.length) * POINTS_PAR_LIGNE
+
+  let main = partie.main.map((f, i) => (i === indexMain ? null : f))
+  // Les 3 formes sont posées : on en tire 3 nouvelles, adaptées au nouveau score.
+  if (main.every((f) => f === null)) main = tirerMain(hasard, score)
   return { partie: { grille, main, score }, effacees }
 }

@@ -85,5 +85,11 @@ commenter le code en français, ne pas supposer qu'il connaît les outils.
   l'accueil. Avatars en volume, option `saxophone`, posés sur la plage de l'île
   par-dessus le SVG (composant `Apercu` de `Avatars.tsx`, classe `avatar-ile`).
 
+- [x] (j) nouveau thème « soirée au coin du feu » (nuit prune, dégradé ambre → corail,
+  police arrondie ; toutes les couleurs sont des variables en tête de `styles.css`).
+  Mini-jeu plus difficile : `DESSINS_FORMES` est rangé du facile au difficile et
+  `formesEnJeu(score)` fait glisser un groupe de `PUZZLE_FORMES_EN_JEU` formes d'un
+  cran tous les `PUZZLE_POINTS_PAR_CRAN` points.
+
 À chaque fin d'étape : lancer l'app, exécuter les tests, dire quoi tester, faire
 un commit, attendre le retour de l'utilisateur.

@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest'
 import { PUZZLE_TAILLE as N } from '../config'
 import { cristaux } from './calculs'
 import { energie, soldeCristaux } from './ile'
-import { FORMES, estBloquee, jouerCoup, nouvellePartie, peutPoser, type Forme, type Partie } from './puzzle'
+import { FORMES, formesEnJeu, estBloquee, jouerCoup, nouvellePartie, peutPoser, type Forme, type Partie } from './puzzle'
 import type { Etat } from './types'
 
 const point = FORMES[0] // une seule case
@@ -71,6 +71,25 @@ describe('déroulement', () => {
     const damier = [...Array(N * N).keys()].filter((i) => (i + Math.floor(i / N)) % 2 === 0)
     expect(estBloquee(partie(damier, [carre, barre4, null]))).toBe(true)
     expect(estBloquee(partie(damier, [carre, point, null]))).toBe(false)
+  })
+})
+
+describe('difficulté', () => {
+  it('au début, seules les formes les plus faciles sont proposées', () => {
+    expect(formesEnJeu(0)).toEqual(FORMES.slice(0, 10))
+    expect(formesEnJeu(0).every((f) => f.cases.length <= 4)).toBe(true)
+  })
+
+  it('les formes avancent d’un cran tous les 25 points, jusqu’aux plus difficiles', () => {
+    expect(formesEnJeu(24)[0]).toBe(FORMES[0])
+    expect(formesEnJeu(25)[0]).toBe(FORMES[1])
+    expect(formesEnJeu(1_000_000)).toEqual(FORMES.slice(-10))
+  })
+
+  it('la nouvelle main dépend du score atteint', () => {
+    const p = { ...partie([], [null, null, point]), score: 1_000_000 }
+    const resultat = jouerCoup(p, 2, 0, 0, () => 0)!
+    expect(resultat.partie.main[0]).toBe(FORMES[FORMES.length - 10])
   })
 })
 

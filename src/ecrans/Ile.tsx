@@ -40,6 +40,11 @@ const HAUT = 4 + 5 * MARCHE
 /** Haut de la plage, sous l'île. */
 const PLAGE = HAUT + TAILLE * H + SOCLE + 2
 
+/** Position des étoiles dans le ciel, au-dessus et autour de l'île. */
+const ETOILES = [
+  [8, 34], [40, 8], [58, 20], [12, 52], [34, 30], [120, 6], [140, 22], [152, 10], [104, 12], [150, 96], [10, 92], [28, 104],
+]
+
 /** Les cases, du fond vers l'avant : celles de devant sont dessinées en dernier et cachent les autres. */
 const ORDRE = ZONE_DE_CASE.map((_, i) => i).sort(
   (a, b) => (a % TAILLE) + Math.floor(a / TAILLE) - ((b % TAILLE) + Math.floor(b / TAILLE)),
@@ -62,7 +67,20 @@ export function CarteIle({ etat, maintenant, selection, onCase }: PropsCarte) {
   return (
     <span className="ile-cadre">
       <svg className="ile" viewBox={`0 0 ${LARGEUR} ${PLAGE + 22}`} role="group" aria-label="Carte de l'île">
-        <rect width={LARGEUR} height={PLAGE + 22} fill="#16324a" />
+        {/* Le décor : ciel de nuit qui descend vers la mer, lune et étoiles. */}
+        <defs>
+          <linearGradient id="ciel" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stopColor="#2a2052" />
+            <stop offset="0.45" stopColor="#274a73" />
+            <stop offset="1" stopColor="#1f6f8f" />
+          </linearGradient>
+        </defs>
+        <rect width={LARGEUR} height={PLAGE + 22} fill="url(#ciel)" />
+        <circle cx={22} cy={16} r={7} fill="#fff3c9" />
+        <circle cx={25} cy={14} r={6} fill="#2a2256" />
+        {ETOILES.map(([ex, ey], n) => (
+          <circle key={n} className="etoile" cx={ex} cy={ey} r={0.6} fill="#fff" style={{ animationDelay: `${n * 0.4}s` }} />
+        ))}
         {ORDRE.map((i) => {
           const colonne = i % TAILLE
           const ligne = Math.floor(i / TAILLE)

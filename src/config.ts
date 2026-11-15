@@ -86,7 +86,8 @@ export const POINTS_PAR_LIGNE = 10
 
 /**
  * Les formes du puzzle, dessinées en texte : « # » = une case pleine, « . » = vide.
- * Elles sont volontairement petites (4 cases au plus) pour que le jeu reste doux.
+ * Elles sont rangées de la plus facile à la plus difficile : cet ordre compte,
+ * car le jeu propose des formes de plus en plus loin dans la liste (voir ci-dessous).
  */
 export const DESSINS_FORMES = [
   ['#'],
@@ -103,7 +104,34 @@ export const DESSINS_FORMES = [
   ['#', '#', '#', '#'],
   ['###', '.#.'],
   ['.#.', '###'],
+  // Formes moyennes
+  ['##.', '.##'],
+  ['.##', '##.'],
+  ['#.', '##', '.#'],
+  ['.#', '##', '#.'],
+  ['###', '###'],
+  ['##', '##', '##'],
+  ['#####'],
+  ['#', '#', '#', '#', '#'],
+  // Formes difficiles : grands coins, diagonales, grand carré
+  ['#..', '#..', '###'],
+  ['..#', '..#', '###'],
+  ['###', '#..', '#..'],
+  ['###', '..#', '..#'],
+  ['#.', '.#'],
+  ['.#', '#.'],
+  ['###', '###', '###'],
+  ['#..', '.#.', '..#'],
+  ['..#', '.#.', '#..'],
 ]
+
+/**
+ * Difficulté : les formes proposées sont tirées parmi PUZZLE_FORMES_EN_JEU formes
+ * qui se suivent dans la liste. Au début ce sont les premières (les plus faciles) ;
+ * tous les PUZZLE_POINTS_PAR_CRAN points, ce groupe avance d'une forme vers les difficiles.
+ */
+export const PUZZLE_FORMES_EN_JEU = 10
+export const PUZZLE_POINTS_PAR_CRAN = 25
 
 // ---------- Les cristaux ----------
 
