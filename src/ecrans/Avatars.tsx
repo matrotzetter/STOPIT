@@ -97,6 +97,10 @@ export default function Avatars({ etat, maj, aller }: Props) {
             <input type="checkbox" checked={!!a.saxophone} onChange={(e) => changer(i, { saxophone: e.target.checked })} />
             Saxophone
           </label>
+          <label className="interrupteur">
+            <input type="checkbox" checked={!!a.dab} onChange={(e) => changer(i, { dab: e.target.checked })} />
+            Fait un dab de temps en temps
+          </label>
         </section>
       ))}
 

@@ -64,6 +64,8 @@ export interface Avatar {
   lunettes?: boolean
   barbe?: boolean
   saxophone?: boolean
+  /** true : il fait un « dab » de temps en temps. */
+  dab?: boolean
 }
 
 export interface Etat {

@@ -126,6 +126,19 @@ export const CALQUES: Record<string, Calque> = {
     [9, '...n...nn...n...'],
     [10, '...nnnnnnnnnn...'],
   ],
+  // Le « dab » : un bras tendu vers le haut, l'autre replié devant le visage.
+  // Les quatre dernières lignes redessinent le pull sans les bras le long du corps.
+  dab: [
+    [9, '..oooooooo......'],
+    [10, '.opppppppso..oso'],
+    [11, '.oppppppooo.opo.'],
+    [12, '..opppo....opo..'],
+    [13, '..oppo....opo...'],
+    [15, '...oppppppppo...'],
+    [16, '...oppppppppo...'],
+    [17, '...oppppppppo...'],
+    [18, '...oppppppppo...'],
+  ],
   saxophone: [
     [11, '.......nn.......'],
     [12, '.......gG.......'],
@@ -195,7 +208,10 @@ export function dessinerAvatar(
   }
 
   if (a.coiffure === 'milongs' || a.coiffure === 'longs') dessiner(CALQUES[a.coiffure])
-  dessiner(CALQUES.corps)
+  // Le dab dure un peu plus d'une seconde, toutes les 11 secondes environ.
+  const dab = a.dab && ANIME && (maintenant + 3000) % 11000 < 1300
+  // Pendant le dab, on ne dessine pas les bras le long du corps (lignes 15 à 18).
+  dessiner(dab ? CALQUES.corps.filter(([ligne]) => ligne < 15 || ligne > 18) : CALQUES.corps)
   if (a.coiffure !== 'chauve') dessiner(CALQUES.cheveux)
   if (a.coiffure === 'chignon') dessiner(CALQUES.chignon)
   if (a.barbe) dessiner(CALQUES.barbe)
@@ -219,4 +235,5 @@ export function dessinerAvatar(
 
   if (a.lunettes) dessiner(CALQUES.lunettes)
   if (a.saxophone) dessiner(CALQUES.saxophone)
+  if (dab) dessiner(CALQUES.dab) // en dernier : le bras replié passe devant le visage
 }
