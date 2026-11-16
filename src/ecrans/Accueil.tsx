@@ -1,7 +1,7 @@
 // Écran d'accueil : l'île en grand, temps écoulé, cagnotte, prochaine récompense,
 // check-in quotidien et bouton « J'ai une envie ».
 import type { Ecran } from '../App'
-import { NOM_UNITE, chf, duree, texteManque } from '../format'
+import { NOM_UNITE, chf, duree, dureeCourte, texteManque } from '../format'
 import {
   cagnotte,
   cleJour,
@@ -72,6 +72,27 @@ export default function Accueil({ etat, maj, aller }: Props) {
         </section>
       )}
 
+      {/* La question du jour, juste sous le compteur : c'est le geste quotidien. */}
+      {!pasEncoreArrete && (
+        <section className="carte">
+          {rechuteAujourdhui ? (
+            <p>Rechute notée aujourd'hui. Tu repars de là.</p>
+          ) : checkinFait ? (
+            <p>✅ Check-in fait aujourd'hui</p>
+          ) : (
+            <>
+              <p>Toujours sans nicotine aujourd'hui ?</p>
+              <div className="rangee">
+                <button onClick={() => maj({ ...etat, checkins: [...etat.checkins, aujourdhui] })}>Oui</button>
+                <button className="secondaire" onClick={() => aller('rechute')}>
+                  Non
+                </button>
+              </div>
+            </>
+          )}
+        </section>
+      )}
+
       <section className="tuiles">
         <div className="carte">
           <span className="icone" aria-hidden="true">💰</span>
@@ -80,20 +101,20 @@ export default function Accueil({ etat, maj, aller }: Props) {
         </div>
         <div className="carte">
           <span className="icone" aria-hidden="true">🚭</span>
-          <p className="discret">Non consommé</p>
+          <p className="discret">Évité</p>
           <p className="valeur">
             {Math.floor(unitesNonConsommees(etat, maintenant))} {NOM_UNITE[etat.profil.produit]}
           </p>
         </div>
         <div className="carte">
           <span className="icone" aria-hidden="true">🔥</span>
-          <p className="discret">Série en cours</p>
-          <p className="valeur">{duree(serieMs(etat, maintenant))}</p>
+          <p className="discret">Série</p>
+          <p className="valeur">{dureeCourte(serieMs(etat, maintenant))}</p>
         </div>
         <div className="carte">
           <span className="icone" aria-hidden="true">🏅</span>
-          <p className="discret">Meilleure série</p>
-          <p className="valeur">{duree(meilleureSerieMs(etat, maintenant))}</p>
+          <p className="discret">Record</p>
+          <p className="valeur">{dureeCourte(meilleureSerieMs(etat, maintenant))}</p>
         </div>
       </section>
 
@@ -115,26 +136,6 @@ export default function Accueil({ etat, maj, aller }: Props) {
       <button className="secondaire espace" onClick={() => aller('recompenses')}>
         🎁 Mes récompenses
       </button>
-
-      {!pasEncoreArrete && (
-        <section className="carte">
-          {rechuteAujourdhui ? (
-            <p>Rechute notée aujourd'hui. Tu repars de là.</p>
-          ) : checkinFait ? (
-            <p>✅ Check-in fait aujourd'hui</p>
-          ) : (
-            <>
-              <p>Toujours sans nicotine aujourd'hui ?</p>
-              <div className="rangee">
-                <button onClick={() => maj({ ...etat, checkins: [...etat.checkins, aujourdhui] })}>Oui</button>
-                <button className="secondaire" onClick={() => aller('rechute')}>
-                  Non
-                </button>
-              </div>
-            </>
-          )}
-        </section>
-      )}
 
       <div className="rangee">
         <button className="secondaire" onClick={() => aller('stats')}>

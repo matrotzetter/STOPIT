@@ -31,3 +31,11 @@ export function duree(ms: number, avecSecondes = false): string {
   if (avecSecondes) texte += ` ${deuxChiffres(s)} s`
   return texte
 }
+
+/** Durée abrégée pour les petites cases : « 20 j 4 h » dès un jour, sinon « 4 h 12 min ». */
+export function dureeCourte(ms: number): string {
+  const minutes = Math.floor(ms / 60000)
+  const j = Math.floor(minutes / 1440)
+  const h = Math.floor((minutes % 1440) / 60)
+  return j > 0 ? `${j} j ${h} h` : `${h} h ${minutes % 60} min`
+}

@@ -1,21 +1,22 @@
 /* Thème « soirée au coin du feu » : nuit prune, lumières ambrées.
-   Style rétro, assorti au pixel art : angles nets, contours sombres, ombres dures.
+   Style rétro assorti au pixel art, mais doux pour les yeux : couleurs peu saturées,
+   texte bien lisible, beaucoup d'air entre les blocs, très peu de choses qui bougent.
    Pensé pour un téléphone tenu d'une main. Toutes les couleurs sont ici. */
 
 :root {
-  --fond: #15101d;
-  --carte: #261d33;
-  --carte-haut: #30253f; /* haut des cartes, un peu plus clair : effet de relief */
+  --fond: #1b1524;
+  --carte: #2a2137;
+  --carte-haut: #322841; /* haut des cartes, un peu plus clair : effet de relief */
   --bord: rgba(255, 255, 255, 0.1);
-  --texte: #f7efe6;
-  --discret: #b9abc2;
-  --accent: #ffb86b; /* ambre : actions principales */
-  --accent-2: #ff7a8a; /* corail : fin des dégradés */
+  --texte: #f2eae1; /* blanc cassé : moins éblouissant qu'un blanc pur */
+  --discret: #c4b8cb;
+  --accent: #ffc285; /* ambre doux : actions principales */
+  --accent-2: #f39a92; /* corail doux : fin des dégradés */
   --degrade: linear-gradient(135deg, var(--accent), var(--accent-2));
   --or: #ffd166; /* cagnotte */
-  --trait: #120c18; /* contour sombre des cartes et des boutons */
-  --ombre: 0 4px 0 var(--trait); /* ombre dure, sans flou, comme dans un vieux jeu */
-  --titres: ui-monospace, 'SF Mono', Menlo, Consolas, monospace; /* police à chasse fixe : titres et chiffres */
+  --trait: #17111e; /* contour sombre des cartes et des boutons */
+  --ombre: 0 3px 0 var(--trait); /* ombre dure, sans flou, comme dans un vieux jeu */
+  --chiffres: ui-monospace, 'SF Mono', Menlo, Consolas, monospace; /* police à chasse fixe, pour les chiffres seulement */
   color-scheme: dark;
 }
 
@@ -28,15 +29,14 @@ body {
   min-height: 100vh;
   /* Une lueur chaude en haut de l'écran, qui s'éteint vers le bas. */
   background:
-    radial-gradient(120% 55% at 50% 0%, #46305a 0%, rgba(70, 48, 90, 0) 70%),
-    radial-gradient(80% 40% at 100% 100%, rgba(255, 122, 138, 0.1) 0%, rgba(255, 122, 138, 0) 70%),
+    radial-gradient(120% 50% at 50% 0%, #3b2c4c 0%, rgba(59, 44, 76, 0) 70%),
     var(--fond);
   background-attachment: fixed;
   color: var(--texte);
   /* ui-rounded : la police arrondie de l'iPhone ; sinon la police normale de l'appareil. */
   font-family: ui-rounded, 'SF Pro Rounded', system-ui, sans-serif;
   font-size: 17px;
-  line-height: 1.4;
+  line-height: 1.5; /* lignes aérées : plus reposant à lire */
   -webkit-font-smoothing: antialiased;
 }
 
@@ -44,7 +44,7 @@ main {
   max-width: 480px;
   margin: 0 auto;
   /* env(...) : marge supplémentaire pour l'encoche et la barre du bas des téléphones */
-  padding: calc(16px + env(safe-area-inset-top)) 16px calc(16px + env(safe-area-inset-bottom));
+  padding: calc(20px + env(safe-area-inset-top)) 18px calc(20px + env(safe-area-inset-bottom));
 }
 
 /* Laisse la place du bouton « J'ai une envie » fixé en bas. */
@@ -53,41 +53,36 @@ main.avec-bouton-fixe {
 }
 
 h1 {
-  width: fit-content;
-  font-family: var(--titres);
-  font-size: 1.8rem;
-  font-weight: 800;
-  letter-spacing: -0.02em;
-  margin: 0 0 10px;
-  /* Titre en dégradé : le texte sert de « pochoir » au fond coloré. */
-  background: var(--degrade);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-}
-
-.centre h1 {
-  margin-inline: auto;
+  font-size: 1.7rem;
+  font-weight: 700;
+  line-height: 1.25;
+  margin: 0 0 12px;
+  color: var(--accent); /* couleur unie : plus nette à lire qu'un dégradé */
 }
 
 p {
-  margin: 0 0 8px;
+  margin: 0 0 10px;
+}
+
+/* Le dernier élément d'une carte ne laisse pas de vide sous lui. */
+.carte > :last-child {
+  margin-bottom: 0;
 }
 
 .discret {
   color: var(--discret);
-  font-size: 0.9rem;
+  font-size: 0.94rem;
 }
 
 .carte {
   background: linear-gradient(180deg, var(--carte-haut), var(--carte));
   border: 2px solid var(--trait);
-  border-radius: 8px;
-  padding: 16px;
-  margin-bottom: 14px;
+  border-radius: 12px;
+  padding: 18px;
+  margin-bottom: 18px;
   /* un liseré clair en haut, à l'intérieur, puis l'ombre dure en dessous */
   box-shadow:
-    inset 0 2px 0 rgba(255, 255, 255, 0.08),
+    inset 0 2px 0 rgba(255, 255, 255, 0.06),
     var(--ombre);
 }
 
@@ -96,21 +91,18 @@ p {
 }
 
 .grand {
-  font-family: var(--titres);
+  font-family: var(--chiffres);
   font-size: 1.5rem;
   letter-spacing: -0.03em;
-  font-weight: 800;
+  font-weight: 700;
   font-variant-numeric: tabular-nums; /* chiffres de largeur fixe : le compteur ne « saute » pas */
   margin: 0;
-  background: linear-gradient(135deg, #fff3d6, var(--or) 45%, var(--accent-2));
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
+  color: var(--or);
 }
 
 .valeur {
-  font-family: var(--titres);
-  font-size: 1rem;
+  font-family: var(--chiffres);
+  font-size: 1.05rem;
   letter-spacing: -0.03em;
   font-weight: 700;
   margin: 0;
@@ -124,8 +116,8 @@ p {
 .tuiles {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 12px;
-  margin-bottom: 12px;
+  gap: 14px;
+  margin-bottom: 18px;
 }
 
 .tuiles .carte {
@@ -164,10 +156,10 @@ p {
 progress {
   display: block;
   width: 100%;
-  height: 16px;
-  margin: 10px 0;
+  height: 14px;
+  margin: 12px 0;
   border: 2px solid var(--trait);
-  border-radius: 4px;
+  border-radius: 8px;
   overflow: hidden;
   background: rgba(0, 0, 0, 0.35);
   appearance: none;
@@ -191,16 +183,17 @@ button {
   width: 100%;
   min-height: 56px;
   border: 0;
-  border-radius: 8px;
+  border-radius: 12px;
   background: var(--degrade);
   color: #2b1420;
   font: inherit;
-  font-weight: 800;
+  font-size: 1.05rem;
+  font-weight: 700;
   cursor: pointer;
   border: 2px solid var(--trait);
   /* bas du bouton plus sombre (son épaisseur), puis l'ombre dure */
   box-shadow:
-    inset 0 -4px 0 rgba(0, 0, 0, 0.22),
+    inset 0 -3px 0 rgba(0, 0, 0, 0.18),
     var(--ombre);
   transition: transform 0.08s ease-out;
   -webkit-tap-highlight-color: transparent;
@@ -213,7 +206,8 @@ button:active:not(:disabled) {
 }
 
 button.secondaire {
-  background: #2f2540;
+  background: #382d49;
+  font-weight: 600;
   color: var(--texte);
 }
 
@@ -223,31 +217,13 @@ button.secondaire {
   transform: translateX(-50%);
   bottom: calc(16px + env(safe-area-inset-bottom));
   width: min(448px, calc(100% - 32px));
-  min-height: 72px;
-  font-size: 1.3rem;
-  border-radius: 8px;
-  animation: halo 3s ease-in-out infinite;
+  min-height: 68px;
+  font-size: 1.25rem;
+  border-radius: 14px;
 }
 
 .bouton-envie:active:not(:disabled) {
   transform: translate(-50%, 3px);
-}
-
-/* Le bouton principal « respire » : son halo grandit et rétrécit lentement. */
-@keyframes halo {
-  0%,
-  100% {
-    box-shadow:
-      inset 0 -5px 0 rgba(0, 0, 0, 0.22),
-      0 5px 0 var(--trait),
-      0 0 0 0 rgba(255, 184, 107, 0.45);
-  }
-  50% {
-    box-shadow:
-      inset 0 -5px 0 rgba(0, 0, 0, 0.22),
-      0 5px 0 var(--trait),
-      0 0 0 10px rgba(255, 184, 107, 0);
-  }
 }
 
 button:disabled {
@@ -258,7 +234,7 @@ button:disabled {
 /* Espace sous un bouton quand plusieurs boutons se suivent */
 button + button,
 button.espace {
-  margin-top: 12px;
+  margin-top: 14px;
 }
 
 button.espace {
@@ -269,7 +245,7 @@ button.espace {
 .puces {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 10px;
 }
 
 button.puce {
@@ -277,9 +253,9 @@ button.puce {
   min-width: 48px;
   min-height: 48px;
   margin: 0;
-  padding: 0 14px;
-  border-radius: 4px;
-  background: #2f2540;
+  padding: 0 16px;
+  border-radius: 10px;
+  background: #382d49;
   color: var(--texte);
   font-weight: 500;
   box-shadow: inset 0 -3px 0 rgba(0, 0, 0, 0.22);
@@ -288,7 +264,7 @@ button.puce {
 button.puce.choisie {
   background: var(--degrade);
   color: #2b1420;
-  font-weight: 800;
+  font-weight: 700;
 }
 
 /* Respiration guidée */
@@ -314,7 +290,7 @@ button.puce.choisie {
 .consigne {
   position: relative; /* au-dessus du cercle */
   font-size: 1.4rem;
-  font-weight: 800;
+  font-weight: 700;
   margin: 0;
 }
 
@@ -392,12 +368,12 @@ svg.ile [role='button'] {
 
 /* Les ampoules de la guirlande scintillent doucement. */
 .etoile {
-  animation: scintille 3s ease-in-out infinite;
+  animation: scintille 6s ease-in-out infinite;
 }
 
 @keyframes scintille {
   50% {
-    opacity: 0.25;
+    opacity: 0.55;
   }
 }
 
@@ -428,8 +404,7 @@ button.ile-accueil {
   border-radius: 8px;
   background: linear-gradient(180deg, var(--carte-haut), var(--carte));
   color: var(--texte);
-  font-family: var(--titres);
-  font-weight: 700;
+  font-weight: 600;
 }
 
 button.ile-accueil canvas.ile {
@@ -555,7 +530,7 @@ label.bouton {
     var(--ombre);
   color: var(--texte);
   font-size: 1rem;
-  font-weight: 800;
+  font-weight: 700;
   cursor: pointer;
 }
 
@@ -576,7 +551,7 @@ fieldset {
 }
 
 legend {
-  font-weight: 800;
+  font-weight: 700;
   font-size: 1.1rem;
   margin-bottom: 8px;
   padding: 0;
@@ -590,9 +565,8 @@ label {
 }
 
 h2 {
-  font-family: var(--titres);
   font-size: 1.1rem;
-  font-weight: 800;
+  font-weight: 700;
   margin: 24px 0 8px;
 }
 
@@ -709,4 +683,9 @@ input[type='color'] {
 /* Avatars en pixel art : les gros pixels restent nets quand le dessin est agrandi ou réduit. */
 canvas.apercu-avatar {
   image-rendering: pixelated;
+}
+
+/* Dans les tuiles, la valeur tient toujours sur une seule ligne. */
+.tuiles .valeur {
+  white-space: nowrap;
 }

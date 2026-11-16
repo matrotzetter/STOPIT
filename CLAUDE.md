@@ -108,7 +108,7 @@ commenter le code en français, ne pas supposer qu'il connaît les outils.
 
 - [x] (m) quatre boucles d'amélioration :
   1. interface rétro assortie au pixel art (contours `--trait`, ombres dures `--ombre`,
-     police à chasse fixe `--titres` pour titres et chiffres) ; ciel de l'île selon
+     police à chasse fixe `--chiffres` pour les chiffres seulement) ; ciel de l'île selon
      l'heure réelle (`periode` et `CIELS` dans `src/pixels.ts`).
   2. mode Envie : carte « Tu as arrêté pour », barre de temps, écran de victoire avec
      les avatars (`Apercu` accepte `content`), air de saxophone (`son('sax')`) si un

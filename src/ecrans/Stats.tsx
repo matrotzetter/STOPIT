@@ -54,23 +54,23 @@ export default function Stats({ etat, aller }: Props) {
       <section className="tuiles">
         <div className="carte">
           <span className="icone" aria-hidden="true">📅</span>
-          <p className="discret">Jours sans nicotine</p>
+          <p className="discret">Jours</p>
           <p className="grand">{Math.floor(joursCumules)}</p>
         </div>
         <div className="carte">
           <span className="icone" aria-hidden="true">💰</span>
           {/* Tout l'argent non dépensé depuis l'arrêt, récompenses encaissées comprises. */}
-          <p className="discret">Non dépensé</p>
+          <p className="discret">Gardé</p>
           <p className="valeur or">{chf(joursCumules * economieParJour(etat.profil))}</p>
         </div>
         <div className="carte">
           <span className="icone" aria-hidden="true">💪</span>
-          <p className="discret">Envies surmontées</p>
+          <p className="discret">Surmontées</p>
           <p className="grand">{surmontees}</p>
         </div>
         <div className="carte">
           <span className="icone" aria-hidden="true">📝</span>
-          <p className="discret">Envies notées</p>
+          <p className="discret">Envies</p>
           <p className="grand">{etat.envies.length}</p>
         </div>
       </section>
