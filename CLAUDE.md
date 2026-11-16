@@ -102,6 +102,12 @@ commenter le code en français, ne pas supposer qu'il connaît les outils.
 - [x] (i) `soldeCagnotte` (peut être négatif) à côté de `cagnotte` (jamais négative) :
   l'accueil affiche « CHF x à rattraper » quand une rechute a coûté plus que la cagnotte.
 
+- [x] (j) audit 6 à 10 : `prixUnitaire` (testé) pour le prix au paquet ; dessin de
+  l'île dans `src/ecrans/CarteIle.tsx`, séparé de l'écran `Ile.tsx` ; boutons
+  déclencheur partagés (`ChoixDeclencheur` dans `Rechute.tsx`) ; verrou d'écran
+  redemandé au retour dans l'app ; `overrides` dans `package.json` force `glob` ≥ 14.0.6
+  (alertes de sécurité de `workbox-build`) : à retirer quand `vite-plugin-pwa` l'inclura.
+
 Leçons pour la suite : avant toute refonte visuelle, montrer deux ou trois essais
 côte à côte et demander ; poser une question quand la demande peut se comprendre de
 deux façons ; rien n'a encore été vérifié sur l'iPhone.

@@ -1,6 +1,7 @@
 // Tests automatiques des règles de calcul. Lancer avec : npm test
 import { describe, expect, it } from 'vitest'
 import {
+  prixUnitaire,
   avancementRecompense,
   soldeCagnotte,
   JOUR_MS as J,
@@ -141,5 +142,12 @@ describe('cristaux', () => {
     }
     // Jour 4 : 2 check-ins (10) + 1 envie surmontée (10) + palier 3 jours (50).
     expect(cristaux(etat, t0 + 4 * J)).toBe(70)
+  })
+})
+
+describe('prix par unité', () => {
+  it('divise le prix du paquet par le nombre d’unités, ou garde le prix unitaire', () => {
+    expect(prixUnitaire(9, 20)).toBeCloseTo(0.45) // paquet de 20 à CHF 9
+    expect(prixUnitaire(0.5)).toBe(0.5) // prix déjà par unité
   })
 })

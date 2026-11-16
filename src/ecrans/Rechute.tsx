@@ -12,6 +12,28 @@ interface Props {
   aller: (ecran: Ecran) => void
 }
 
+/** Les boutons « Déclencheur » (facultatif), aussi utilisés par l'écran Envie. Toucher le bouton choisi le désélectionne. */
+export function ChoixDeclencheur({ valeur, onChange }: { valeur?: string; onChange: (d?: string) => void }) {
+  return (
+    <fieldset>
+      <legend>Déclencheur (facultatif)</legend>
+      <div className="puces">
+        {DECLENCHEURS.map((d) => (
+          <button
+            key={d}
+            type="button"
+            className={valeur === d ? 'puce choisie' : 'puce'}
+            aria-pressed={valeur === d}
+            onClick={() => onChange(valeur === d ? undefined : d)}
+          >
+            {d}
+          </button>
+        ))}
+      </div>
+    </fieldset>
+  )
+}
+
 export default function Rechute({ etat, maj, aller }: Props) {
   const [unites, setUnites] = useState('1')
   const [declencheur, setDeclencheur] = useState<string>()
@@ -75,22 +97,7 @@ export default function Rechute({ etat, maj, aller }: Props) {
           />
         </label>
 
-        <fieldset>
-          <legend>Déclencheur (facultatif)</legend>
-          <div className="puces">
-            {DECLENCHEURS.map((d) => (
-              <button
-                key={d}
-                type="button"
-                className={declencheur === d ? 'puce choisie' : 'puce'}
-                aria-pressed={declencheur === d}
-                onClick={() => setDeclencheur(declencheur === d ? undefined : d)}
-              >
-                {d}
-              </button>
-            ))}
-          </div>
-        </fieldset>
+        <ChoixDeclencheur valeur={declencheur} onChange={setDeclencheur} />
 
         <label>
           Note (facultatif)

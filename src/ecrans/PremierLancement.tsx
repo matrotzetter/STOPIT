@@ -3,6 +3,7 @@
 import { useState, type FormEvent } from 'react'
 import { PALIERS_JOURS } from '../config'
 import { NOM_UNITE } from '../format'
+import { prixUnitaire } from '../logique/calculs'
 import type { Etat, Produit } from '../logique/types'
 
 const PRODUITS: { valeur: Produit; nom: string }[] = [
@@ -56,11 +57,10 @@ export default function PremierLancement({ onTermine, existant, onAnnuler }: Pro
   /** Appelé quand on appuie sur « Commencer » (le navigateur a déjà vérifié les champs obligatoires). */
   function valider(evenement: FormEvent) {
     evenement.preventDefault() // empêche le rechargement de la page
-    const prixSaisi = Number(prix)
     const profil = {
       produit,
       consoParJour: Number(conso),
-      prixParUnite: parPaquet ? prixSaisi / Number(unitesParPaquet) : prixSaisi,
+      prixParUnite: prixUnitaire(Number(prix), parPaquet ? Number(unitesParPaquet) : undefined),
       dateArret: arretMaintenant ? Date.now() : new Date(dateArret).getTime(),
       raisons: raisons.map((r) => r.trim()),
     }

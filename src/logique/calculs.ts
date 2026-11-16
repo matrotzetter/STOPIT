@@ -27,6 +27,11 @@ function datesRechutes(etat: Etat, maintenant: number): number[] {
   return rechutesComptees(etat, maintenant).map((r) => r.date)
 }
 
+/** Prix d'une unité : le prix saisi, divisé par le nombre d'unités s'il s'agit d'un paquet. */
+export function prixUnitaire(prix: number, unitesParPaquet?: number): number {
+  return unitesParPaquet ? prix / unitesParPaquet : prix
+}
+
 /** Économie par jour = consommation par jour × prix par unité. */
 export function economieParJour(profil: Profil): number {
   return profil.consoParJour * profil.prixParUnite

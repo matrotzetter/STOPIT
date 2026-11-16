@@ -2,14 +2,14 @@
 // puis on dit si l'envie est passée.
 import { useEffect, useState } from 'react'
 import type { Ecran } from '../App'
-import { CRISTAUX_PAR_ENVIE, DECLENCHEURS, DUREE_ENVIE_MS, EXPIRATION_S, INSPIRATION_S } from '../config'
+import { CRISTAUX_PAR_ENVIE, DUREE_ENVIE_MS, EXPIRATION_S, INSPIRATION_S } from '../config'
 import type { Envie as EnvieNotee, Etat } from '../logique/types'
 import { avatarsDe } from '../avatar'
 import { son } from '../sons'
 import { useMaintenant } from '../useMaintenant'
 import { Apercu } from './Avatars'
 import MiniJeu from './MiniJeu'
-import Rechute from './Rechute'
+import Rechute, { ChoixDeclencheur } from './Rechute'
 
 interface Props {
   etat: Etat
@@ -38,17 +38,23 @@ export default function Envie({ etat, maj, aller }: Props) {
     if (phase !== 'minuteur') return
     let verrou: WakeLockSentinel | undefined
     let termine = false
-    navigator.wakeLock
-      ?.request('screen')
-      .then((v) => {
-        // Si on a déjà quitté le minuteur entre-temps, on rend le verrou tout de suite.
-        if (termine) v.release()
-        else verrou = v
-      })
-      .catch(() => {}) // refusé ou non disponible : tant pis, le minuteur reste juste
-    // shortcut: le verrou n'est pas redemandé si on quitte puis revient dans l'app pendant le minuteur.
+    // Le téléphone rend le verrou dès qu'on quitte l'app : on le redemande à chaque retour.
+    const demander = () => {
+      if (document.visibilityState !== 'visible') return
+      navigator.wakeLock
+        ?.request('screen')
+        .then((v) => {
+          // Si on a déjà quitté le minuteur entre-temps, on rend le verrou tout de suite.
+          if (termine) v.release()
+          else verrou = v
+        })
+        .catch(() => {}) // refusé ou non disponible : tant pis, le minuteur reste juste
+    }
+    demander()
+    document.addEventListener('visibilitychange', demander)
     return () => {
       termine = true
+      document.removeEventListener('visibilitychange', demander)
       verrou?.release()
     }
   }, [phase])
@@ -106,21 +112,7 @@ export default function Envie({ etat, maj, aller }: Props) {
           </div>
         </fieldset>
 
-        <fieldset>
-          <legend>Déclencheur (facultatif)</legend>
-          <div className="puces">
-            {DECLENCHEURS.map((d) => (
-              <button
-                key={d}
-                className={declencheur === d ? 'puce choisie' : 'puce'}
-                aria-pressed={declencheur === d}
-                onClick={() => setDeclencheur(declencheur === d ? undefined : d)}
-              >
-                {d}
-              </button>
-            ))}
-          </div>
-        </fieldset>
+        <ChoixDeclencheur valeur={declencheur} onChange={setDeclencheur} />
 
         <button className="secondaire" onClick={() => aller('accueil')}>
           Annuler

@@ -14,7 +14,7 @@ import {
 } from '../logique/calculs'
 import { energie, soldeCristaux } from '../logique/ile'
 import type { Etat } from '../logique/types'
-import { CarteIle } from './Ile'
+import { CarteIle } from './CarteIle'
 import { useMaintenant } from '../useMaintenant'
 
 interface Props {
