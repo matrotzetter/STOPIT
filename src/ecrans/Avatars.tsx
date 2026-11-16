@@ -19,10 +19,12 @@ interface PropsApercu {
   className?: string
   /** Décale le balancement, pour que deux avatars côte à côte ne bougent pas ensemble. */
   decalage?: number
+  /** true : il sourit, les yeux plissés. */
+  content?: boolean
 }
 
 /** Petit dessin animé de l'avatar : il se tourne doucement d'un côté puis de l'autre. */
-export function Apercu({ avatar, className = 'apercu-avatar', decalage = 0 }: PropsApercu) {
+export function Apercu({ avatar, className = 'apercu-avatar', decalage = 0, content = false }: PropsApercu) {
   const ref = useRef<HTMLCanvasElement>(null)
   useEffect(() => {
     const ctx = ref.current!.getContext('2d')!
@@ -30,7 +32,7 @@ export function Apercu({ avatar, className = 'apercu-avatar', decalage = 0 }: Pr
     const dessiner = (t: number) => {
       // On dessine deux fois plus grand que l'affichage, pour rester net sur téléphone.
       ctx.clearRect(0, 0, APERCU * 2, APERCU * 2)
-      dessinerAvatar(ctx, avatar, APERCU, APERCU * 2 - 8, APERCU * 2 - 44, false, ANIME ? balancement(t, decalage) : 0)
+      dessinerAvatar(ctx, avatar, APERCU, APERCU * 2 - 8, APERCU * 2 - 44, content, ANIME ? balancement(t, decalage) : 0)
       // requestAnimationFrame : « rappelle-moi juste avant la prochaine image affichée ».
       if (ANIME) image = requestAnimationFrame(dessiner)
     }

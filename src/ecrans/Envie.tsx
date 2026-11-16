@@ -7,6 +7,7 @@ import type { Envie as EnvieNotee, Etat } from '../logique/types'
 import { avatarsDe } from '../avatar'
 import { son } from '../sons'
 import { useMaintenant } from '../useMaintenant'
+import { Apercu } from './Avatars'
 import MiniJeu from './MiniJeu'
 import Rechute from './Rechute'
 
@@ -78,6 +79,12 @@ export default function Envie({ etat, maj, aller }: Props) {
         <h1>Une envie arrive</h1>
         <p className="discret">Elle va passer. Occupons les 5 prochaines minutes.</p>
 
+        {/* Une de tes raisons d'arrêter, pour te rappeler pourquoi tu tiens. */}
+        <section className="carte raison">
+          <p className="discret">Tu as arrêté pour :</p>
+          <p className="valeur">« {raison} »</p>
+        </section>
+
         <button onClick={() => demarrer('jouer')}>Jouer</button>
         <button className="secondaire espace" onClick={() => demarrer('respirer')}>
           Respirer
@@ -127,9 +134,13 @@ export default function Envie({ etat, maj, aller }: Props) {
     const total = etat.envies.filter((e) => e.surmontee).length
     return (
       <main className="centre">
-        <p className="victoire" aria-hidden="true">
-          💎
-        </p>
+        {/* Tes deux avatars fêtent ça, de part et d'autre du cristal gagné. */}
+        <div className="fete" aria-hidden="true">
+          {avatarsDe(etat).map((avatar, i) => (
+            <Apercu key={i} avatar={avatar} content decalage={i * 2} />
+          ))}
+          <p className="victoire">💎</p>
+        </div>
         <h1>Envie surmontée !</h1>
         <p>+{CRISTAUX_PAR_ENVIE} cristaux</p>
         <p className="discret">
@@ -154,7 +165,8 @@ export default function Envie({ etat, maj, aller }: Props) {
         <button
           onClick={() => {
             maj(avecEnvie(etat, true))
-            son('victoire')
+            // Si l'un des avatars a un saxophone, c'est lui qui joue l'air de la victoire.
+            son(avatarsDe(etat).some((a) => a.saxophone) ? 'sax' : 'victoire')
             setPhase('victoire')
           }}
         >
@@ -181,6 +193,7 @@ export default function Envie({ etat, maj, aller }: Props) {
         <p className="discret" role="timer" aria-label="Temps restant">
           {minutes}:{secondes} · « {raison} »
         </p>
+        <progress value={ecouleMs} max={DUREE_ENVIE_MS} aria-hidden="true" />
         {/* Le score ne sert qu'au record personnel : il ne rapporte ni énergie ni cristaux. */}
         <MiniJeu avatars={avatarsDe(etat)} record={etat.recordPuzzle ?? 0} onRecord={(score) => maj({ ...etat, recordPuzzle: score })} />
         <button className="secondaire" onClick={() => aller('accueil')}>
@@ -201,6 +214,7 @@ export default function Envie({ etat, maj, aller }: Props) {
       <p className="grand" role="timer" aria-label="Temps restant">
         {minutes}:{secondes}
       </p>
+      <progress value={ecouleMs} max={DUREE_ENVIE_MS} aria-hidden="true" />
 
       {/* Le cercle grossit à l'inspiration et rétrécit à l'expiration.
           C'est le navigateur qui anime le changement de taille (transition CSS). */}

@@ -318,9 +318,34 @@ button.puce.choisie {
   margin: 0;
 }
 
+/* La raison d'arrêter, mise en avant par un liseré ambre à gauche */
+.carte.raison {
+  border-left: 6px solid var(--accent);
+}
+
+/* Écran de victoire : les deux avatars, et le cristal entre eux */
+.fete {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  gap: 72px;
+  margin: 32px 0 8px;
+}
+
+.fete canvas.apercu-avatar {
+  margin: 0;
+}
+
+.fete .victoire {
+  position: absolute;
+  left: 50%;
+  top: 28px;
+  margin: 0 0 0 -0.5em;
+}
+
 /* Animation de victoire : le cristal apparaît en rebondissant */
 .victoire {
-  font-size: 5rem;
+  font-size: 3.4rem;
   margin: 48px 0 8px;
   animation: rebond 0.7s ease-out;
   filter: drop-shadow(0 0 24px rgba(255, 209, 102, 0.6));
