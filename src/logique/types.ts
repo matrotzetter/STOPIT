@@ -54,7 +54,6 @@ export interface Batiment {
 
 /** L'apparence d'un petit personnage du mini-jeu. Purement décoratif. */
 export interface Avatar {
-  nom: string
   /** Couleurs au format « #rrggbb ». */
   peau: string
   cheveux: string

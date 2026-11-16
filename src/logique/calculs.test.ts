@@ -1,6 +1,7 @@
 // Tests automatiques des règles de calcul. Lancer avec : npm test
 import { describe, expect, it } from 'vitest'
 import {
+  avancementRecompense,
   soldeCagnotte,
   JOUR_MS as J,
   cagnotte,
@@ -120,6 +121,11 @@ describe('récompenses', () => {
     expect(p.chfManquants).toBeCloseTo(5)
     expect(p.progression).toBeCloseTo(1 / 3)
     expect(prochaineRecompense(base, t0)).toBeNull()
+  })
+
+  it('une récompense à palier ou prix nul (fichier importé) ne casse pas la barre', () => {
+    const gratuite = { id: 'g', nom: 'g', prix: 0, palierJours: 0 }
+    expect(avancementRecompense(gratuite, base, t0)).toBe(1)
   })
 })
 

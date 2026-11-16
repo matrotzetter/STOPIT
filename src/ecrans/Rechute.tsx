@@ -3,7 +3,7 @@ import { useState, type FormEvent } from 'react'
 import type { Ecran } from '../App'
 import { DECLENCHEURS } from '../config'
 import { NOM_UNITE, chf, duree } from '../format'
-import { cagnotte, meilleureSerieMs, tempsCumuleMs } from '../logique/calculs'
+import { cagnotte, meilleureSerieMs, soldeCagnotte, tempsCumuleMs } from '../logique/calculs'
 import type { Etat } from '../logique/types'
 
 interface Props {
@@ -42,6 +42,9 @@ export default function Rechute({ etat, maj, aller }: Props) {
         </p>
         <section className="carte">
           <p>💰 Cagnotte : {chf(cagnotte(etat, maintenant))}</p>
+          {soldeCagnotte(etat, maintenant) < 0 && (
+            <p className="discret">{chf(-soldeCagnotte(etat, maintenant))} à rattraper avant qu'elle ne remonte.</p>
+          )}
           <p>📅 Temps cumulé sans nicotine : {duree(tempsCumuleMs(etat, maintenant))}</p>
           <p>🏆 Meilleure série : {duree(meilleureSerieMs(etat, maintenant))}</p>
           <p>💪 Envies surmontées : {surmontees}</p>

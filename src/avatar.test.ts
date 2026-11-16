@@ -11,9 +11,9 @@ describe('avatarsDe', () => {
   })
 
   it('complète un avatar incomplet ou absent (fichier importé abîmé)', () => {
-    const avatars = avatarsDe({ ...etat, avatars: [{ nom: 'Mat', barbe: true }] } as Etat)
+    const avatars = avatarsDe({ ...etat, avatars: [{ coiffure: 'chauve', barbe: true }] } as Etat)
     expect(avatars).toHaveLength(2)
-    expect(avatars[0]).toEqual({ ...AVATARS_DEFAUT[0], nom: 'Mat', barbe: true })
+    expect(avatars[0]).toEqual({ ...AVATARS_DEFAUT[0], coiffure: 'chauve', barbe: true })
     expect(avatars[1]).toEqual(AVATARS_DEFAUT[1])
   })
 })

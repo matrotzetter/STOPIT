@@ -157,6 +157,6 @@ export const COIFFURES: Record<string, string> = {
 
 /** Les deux personnages tant qu'on ne les a pas réglés (Réglages → Mes avatars). */
 export const AVATARS_DEFAUT = [
-  { nom: 'Moi', peau: '#f0c9a4', cheveux: '#5b3a24', pull: '#5f8f7a', coiffure: 'courts', saxophone: true },
-  { nom: 'Ma copine', peau: '#f0c9a4', cheveux: '#8a5a33', pull: '#d98c8c', coiffure: 'longs', dab: true },
+  { peau: '#f0c9a4', cheveux: '#5b3a24', pull: '#5f8f7a', coiffure: 'courts', saxophone: true },
+  { peau: '#f0c9a4', cheveux: '#8a5a33', pull: '#d98c8c', coiffure: 'longs', dab: true },
 ]

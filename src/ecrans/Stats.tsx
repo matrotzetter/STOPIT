@@ -1,7 +1,7 @@
 // Écran « Statistiques » : envies par jour, déclencheurs, heures à risque.
 import type { Ecran } from '../App'
 import { chf } from '../format'
-import { JOUR_MS, economieParJour, tempsCumuleMs } from '../logique/calculs'
+import { JOUR_MS, tempsCumuleMs, unitesNonConsommees } from '../logique/calculs'
 import { declencheursFrequents, enviesParHeure, enviesParJour } from '../logique/stats'
 import type { Etat } from '../logique/types'
 
@@ -59,9 +59,9 @@ export default function Stats({ etat, aller }: Props) {
         </div>
         <div className="carte">
           <span className="icone" aria-hidden="true">💰</span>
-          {/* Tout l'argent non dépensé depuis l'arrêt, récompenses encaissées comprises. */}
+          {/* Tout l'argent non dépensé depuis l'arrêt (rechutes déduites), récompenses encaissées comprises. */}
           <p className="discret">Gardé</p>
-          <p className="valeur or">{chf(joursCumules * economieParJour(etat.profil))}</p>
+          <p className="valeur or">{chf(unitesNonConsommees(etat, maintenant) * etat.profil.prixParUnite)}</p>
         </div>
         <div className="carte">
           <span className="icone" aria-hidden="true">💪</span>

@@ -1,4 +1,4 @@
-// Écran « Mes avatars » : régler l'apparence des deux personnages du mini-jeu.
+// Écran « Mes avatars » : régler l'apparence des deux personnages.
 import { useEffect, useRef } from 'react'
 import type { Ecran } from '../App'
 import { animer, avatarsDe, balancement, dessinerAvatar } from '../avatar'
@@ -48,15 +48,11 @@ export default function Avatars({ etat, maj, aller }: Props) {
   return (
     <main>
       <h1>Mes avatars</h1>
-      <p className="discret">Ils apparaissent au coin du feu dans le mini-jeu. Chaque changement est enregistré tout de suite.</p>
+      <p className="discret">Ils apparaissent sur la plage de l'île, au coin du feu du mini-jeu et quand tu surmontes une envie. Chaque changement est enregistré tout de suite.</p>
 
       {avatars.map((a, i) => (
         <section className="carte" key={i}>
           <Apercu avatar={a} />
-          <label>
-            Prénom
-            <input type="text" maxLength={14} value={a.nom} onChange={(e) => changer(i, { nom: e.target.value })} />
-          </label>
           <div className="couleurs">
             <label>
               Peau

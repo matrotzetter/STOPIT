@@ -104,6 +104,16 @@ export interface Prochaine {
   progression: number
 }
 
+/**
+ * Avancement vers une récompense, de 0 à 1 : celui du critère le plus en retard
+ * (jours de série ou argent en cagnotte). Un palier ou un prix nul compte comme atteint.
+ */
+export function avancementRecompense(r: Recompense, etat: Etat, maintenant: number): number {
+  const jours = r.palierJours > 0 ? serieMs(etat, maintenant) / JOUR_MS / r.palierJours : 1
+  const argent = r.prix > 0 ? cagnotte(etat, maintenant) / r.prix : 1
+  return Math.min(1, jours, argent)
+}
+
 /** La prochaine récompense à viser : la non encaissée au plus petit palier. */
 export function prochaineRecompense(etat: Etat, maintenant: number): Prochaine | null {
   const candidates = etat.recompenses
@@ -114,14 +124,11 @@ export function prochaineRecompense(etat: Etat, maintenant: number): Prochaine |
 
   const serieJours = serieMs(etat, maintenant) / JOUR_MS
   const argent = cagnotte(etat, maintenant)
-  // « || 1 » évite une division par zéro si le palier ou le prix vaut 0.
-  const avancementJours = Math.min(1, serieJours / (recompense.palierJours || 1))
-  const avancementChf = recompense.prix > 0 ? Math.min(1, argent / recompense.prix) : 1
   return {
     recompense,
     joursManquants: Math.max(0, recompense.palierJours - serieJours),
     chfManquants: Math.max(0, recompense.prix - argent),
-    progression: Math.min(avancementJours, avancementChf),
+    progression: avancementRecompense(recompense, etat, maintenant),
   }
 }
 
