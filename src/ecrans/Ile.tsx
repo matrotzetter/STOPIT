@@ -1,7 +1,7 @@
 // Écran « Île » : la carte, les ressources, et la construction sur les cases dégagées.
 import { useEffect, useRef, useState } from 'react'
 import type { Ecran } from '../App'
-import { ANIME, HAUTEUR_AVATAR, avatarsDe, balancement, dessinerAvatar } from '../avatar'
+import { ANIME, HAUTEUR_AVATAR, avatarsDe, dessinerAvatar } from '../avatar'
 import { CATALOGUE, NIVEAU_MAX, PALIERS_JOURS } from '../config'
 import { JOUR_MS, tempsCumuleMs } from '../logique/calculs'
 import {
@@ -19,7 +19,7 @@ import {
   soldeCristaux,
 } from '../logique/ile'
 import type { Etat } from '../logique/types'
-import { CIELS, COULEURS_MOTIFS, NUAGE, dessinerMotif, periode } from '../pixels'
+import { BATIMENTS, CIELS, COULEURS_MOTIFS, FEU, NUAGE, dessinerMotif, periode } from '../pixels'
 import { useMaintenant } from '../useMaintenant'
 
 /** Couleur du sol de chaque zone, de la plage (zone 1) au sommet (zone 6). */
@@ -153,16 +153,16 @@ function dessinerIle(
     rect(x - 4 + ((i * 5) % 8), y + 4 + (i % 3), 1, 1, 'rgba(0, 0, 0, 0.18)')
     rect(x + 3 - ((i * 3) % 7), y + 3 + ((i * 2) % 4), 1, 1, 'rgba(255, 255, 255, 0.2)')
     const batiment = etat.batiments.find((b) => b.case === i)
-    const m = batiment && modele(batiment.type)
-    if (m) {
-      // Le bâtiment est debout sur la case ; il grandit avec son niveau. Dessiné tout petit,
-      // l'emoji devient lui aussi pixelisé une fois agrandi.
-      rect(x - 4, y + H / 2 + 1, 8, 1, 'rgba(0, 0, 0, 0.25)')
-      ctx.font = `${12 + batiment.niveau * 2}px sans-serif`
-      ctx.textAlign = 'center'
-      ctx.textBaseline = 'bottom'
-      ctx.fillStyle = '#000' // couleur opaque : sinon l'emoji hériterait de la transparence de l'ombre
-      ctx.fillText(m.emoji, x, y + H / 2 + 4)
+    if (batiment) {
+      // Le bâtiment est debout sur la case, centré, les pieds un peu en avant du milieu.
+      const motif = batiment.type === 'feu' ? FEU[Math.floor(t / 180) % 2] : BATIMENTS[batiment.type]
+      if (!motif) continue // type inconnu (fichier importé d'une autre version) : on ne dessine rien
+      const gauche = x - Math.floor(motif[0].length / 2)
+      const haut = y + H / 2 + 2 - motif.length
+      rect(gauche, y + H / 2 + 2, motif[0].length, 1, 'rgba(0, 0, 0, 0.25)') // ombre au sol
+      dessinerMotif(ctx, motif, gauche, haut, COULEURS_MOTIFS)
+      // Niveaux 2 et 3 : une ou deux petites étoiles dorées au-dessus.
+      for (let n = 1; n < batiment.niveau; n++) rect(x - batiment.niveau * 2 + n * 4 - 1, haut - 4, 2, 2, '#ffd166')
     }
   }
 
@@ -187,9 +187,11 @@ function dessinerIle(
     ctx.fillText(`+${monuments.length - 8}`, 36 + 8 * 11, HAUTEUR - 5)
   }
   avatarsDe(etat).forEach((avatar, n) => {
-    const x = n === 0 ? 12 : LARGEUR - 12
+    // Chacun se promène lentement sur sa moitié de plage, et regarde dans le sens de la marche.
+    const pas = t / 9000 + n * 2
+    const x = Math.round((n === 0 ? 40 : LARGEUR - 40) + Math.sin(pas) * 28)
     rect(x - 6, HAUTEUR - 3, 12, 1, 'rgba(0, 0, 0, 0.2)')
-    dessinerAvatar(ctx, avatar, x, HAUTEUR - 2, HAUTEUR_AVATAR, false, balancement(t, n * 2) * 2)
+    dessinerAvatar(ctx, avatar, x, HAUTEUR - 2, HAUTEUR_AVATAR, false, Math.cos(pas))
   })
 }
 
@@ -266,6 +268,8 @@ export default function Ile({ etat, maj, aller }: Props) {
 
   const joursCumules = tempsCumuleMs(etat, maintenant) / JOUR_MS
   const prochainPalier = PALIERS_JOURS.find((p) => p > joursCumules)
+  /** Le dernier palier déjà atteint (0 avant le premier). */
+  const palierAtteint = Math.max(0, ...PALIERS_JOURS.filter((p) => p <= joursCumules))
   const monuments = etat.recompenses.filter((r) => r.encaisseeLe)
 
   // Informations sur la case sélectionnée.
@@ -285,6 +289,14 @@ export default function Ile({ etat, maj, aller }: Props) {
           : 'Toutes les zones sont ouvertes.'}{' '}
         L'île avance avec ton temps sans nicotine, même app fermée.
       </p>
+      {prochainPalier && (
+        // Avancement entre le palier déjà atteint et le prochain.
+        <progress
+          value={joursCumules - palierAtteint}
+          max={prochainPalier - palierAtteint}
+          aria-label="Progression vers la prochaine zone"
+        />
+      )}
 
       <CarteIle etat={etat} maintenant={maintenant} selection={selection} onCase={setSelection} />
 
