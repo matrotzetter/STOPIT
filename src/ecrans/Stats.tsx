@@ -1,5 +1,7 @@
 // Écran « Statistiques » : envies par jour, déclencheurs, heures à risque.
 import type { Ecran } from '../App'
+import { chf } from '../format'
+import { JOUR_MS, economieParJour, tempsCumuleMs } from '../logique/calculs'
 import { declencheursFrequents, enviesParHeure, enviesParJour } from '../logique/stats'
 import type { Etat } from '../logique/types'
 
@@ -39,6 +41,7 @@ function Barres({ barres }: { barres: Barre[] }) {
 export default function Stats({ etat, aller }: Props) {
   const maintenant = Date.now()
   const surmontees = etat.envies.filter((e) => e.surmontee).length
+  const joursCumules = tempsCumuleMs(etat, maintenant) / JOUR_MS
   const jours = enviesParJour(etat.envies, maintenant)
   const declencheurs = declencheursFrequents(etat.envies)
   const heures = enviesParHeure(etat.envies)
@@ -50,10 +53,23 @@ export default function Stats({ etat, aller }: Props) {
 
       <section className="tuiles">
         <div className="carte">
+          <span className="icone" aria-hidden="true">📅</span>
+          <p className="discret">Jours sans nicotine</p>
+          <p className="grand">{Math.floor(joursCumules)}</p>
+        </div>
+        <div className="carte">
+          <span className="icone" aria-hidden="true">💰</span>
+          {/* Tout l'argent non dépensé depuis l'arrêt, récompenses encaissées comprises. */}
+          <p className="discret">Non dépensé</p>
+          <p className="valeur or">{chf(joursCumules * economieParJour(etat.profil))}</p>
+        </div>
+        <div className="carte">
+          <span className="icone" aria-hidden="true">💪</span>
           <p className="discret">Envies surmontées</p>
           <p className="grand">{surmontees}</p>
         </div>
         <div className="carte">
+          <span className="icone" aria-hidden="true">📝</span>
           <p className="discret">Envies notées</p>
           <p className="grand">{etat.envies.length}</p>
         </div>

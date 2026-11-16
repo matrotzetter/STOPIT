@@ -6,7 +6,7 @@
 // 115 pixels de large), puis agrandi par le navigateur sans lissage. C'est ce
 // qui donne l'aspect pixelisé.
 import { useEffect, useRef, useState, type PointerEvent } from 'react'
-import { ANIME, HAUTEUR_AVATAR, dessinerAvatar } from '../avatar'
+import { ANIME, HAUTEUR_AVATAR, animer, dessinerAvatar } from '../avatar'
 import { PUZZLE_TAILLE as N } from '../config'
 import type { Avatar } from '../logique/types'
 import { COULEURS_MOTIFS, FEU, FLECHE, dessinerMotif } from '../pixels'
@@ -209,15 +209,9 @@ export default function MiniJeu({ record, onRecord, avatars }: Props) {
     // Le dessin a très peu de pixels ; c'est la feuille de style qui l'agrandit sans le lisser.
     canvas.width = jeu.largeur
     canvas.height = hauteurTotale()
-    dessiner()
-    if (!ANIME) return
-    // Le décor est vivant : on redessine le jeu à chaque image affichée.
-    // requestAnimationFrame : « rappelle-moi juste avant la prochaine image ».
-    let image = requestAnimationFrame(function boucle() {
-      dessiner()
-      image = requestAnimationFrame(boucle)
-    })
-    return () => cancelAnimationFrame(image) // arrêt quand on quitte le jeu
+    // Le décor est vivant : on redessine le jeu régulièrement, jusqu'à ce qu'on le quitte.
+    // (Chaque geste du doigt redessine aussi tout de suite : le jeu reste réactif.)
+    return animer(dessiner)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 

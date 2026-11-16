@@ -1,7 +1,7 @@
 // Écran « Île » : la carte, les ressources, et la construction sur les cases dégagées.
 import { useEffect, useRef, useState } from 'react'
 import type { Ecran } from '../App'
-import { ANIME, HAUTEUR_AVATAR, avatarsDe, dessinerAvatar } from '../avatar'
+import { HAUTEUR_AVATAR, animer, avatarsDe, dessinerAvatar } from '../avatar'
 import { CATALOGUE, NIVEAU_MAX, PALIERS_JOURS } from '../config'
 import { JOUR_MS, tempsCumuleMs } from '../logique/calculs'
 import {
@@ -216,14 +216,7 @@ export function CarteIle({ etat, maintenant, selection, onCase }: PropsCarte) {
   // Redessine à chaque changement, et en continu pour les animations.
   useEffect(() => {
     const ctx = canvasRef.current!.getContext('2d')!
-    let image = 0
-    const boucle = () => {
-      dessinerIle(ctx, etat, degagees, selection, ANIME ? performance.now() : 0, new Date(maintenant).getHours())
-      // requestAnimationFrame : « rappelle-moi juste avant la prochaine image affichée ».
-      if (ANIME) image = requestAnimationFrame(boucle)
-    }
-    boucle()
-    return () => cancelAnimationFrame(image)
+    return animer((t) => dessinerIle(ctx, etat, degagees, selection, t, new Date(maintenant).getHours()))
   })
 
   return (
@@ -246,7 +239,15 @@ export function CarteIle({ etat, maintenant, selection, onCase }: PropsCarte) {
               role={onCase ? 'button' : undefined}
               tabIndex={onCase ? 0 : undefined}
               aria-label={`Ligne ${Math.floor(i / TAILLE) + 1}, colonne ${(i % TAILLE) + 1} : ${description}`}
-              onKeyDown={onCase && ((e) => e.key === 'Enter' && onCase(i))}
+              onKeyDown={
+                onCase &&
+                ((e) => {
+                  // Entrée ou Espace, comme pour un vrai bouton.
+                  if (e.key !== 'Enter' && e.key !== ' ') return
+                  e.preventDefault() // sinon Espace fait défiler la page
+                  onCase(i)
+                })
+              }
               onClick={onCase && (() => onCase(i))}
             />
           )

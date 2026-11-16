@@ -1,7 +1,7 @@
 // Écran « Mes avatars » : régler l'apparence des deux personnages du mini-jeu.
 import { useEffect, useRef } from 'react'
 import type { Ecran } from '../App'
-import { ANIME, avatarsDe, balancement, dessinerAvatar } from '../avatar'
+import { animer, avatarsDe, balancement, dessinerAvatar } from '../avatar'
 import { COIFFURES } from '../config'
 import type { Avatar, Etat } from '../logique/types'
 
@@ -28,16 +28,12 @@ export function Apercu({ avatar, className = 'apercu-avatar', decalage = 0, cont
   const ref = useRef<HTMLCanvasElement>(null)
   useEffect(() => {
     const ctx = ref.current!.getContext('2d')!
-    let image = 0
-    const dessiner = (t: number) => {
+    // L'animation s'arrête d'elle-même quand l'avatar change ou disparaît.
+    return animer((t) => {
       // On dessine deux fois plus grand que l'affichage, pour rester net sur téléphone.
       ctx.clearRect(0, 0, APERCU * 2, APERCU * 2)
-      dessinerAvatar(ctx, avatar, APERCU, APERCU * 2 - 8, APERCU * 2 - 44, content, ANIME ? balancement(t, decalage) : 0)
-      // requestAnimationFrame : « rappelle-moi juste avant la prochaine image affichée ».
-      if (ANIME) image = requestAnimationFrame(dessiner)
-    }
-    dessiner(performance.now())
-    return () => cancelAnimationFrame(image) // arrête l'animation quand l'avatar change ou disparaît
+      dessinerAvatar(ctx, avatar, APERCU, APERCU * 2 - 8, APERCU * 2 - 44, content, balancement(t, decalage))
+    })
   })
   return <canvas ref={ref} className={className} width={APERCU * 2} height={APERCU * 2} aria-hidden="true" />
 }

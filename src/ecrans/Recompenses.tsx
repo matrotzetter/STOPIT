@@ -119,6 +119,8 @@ export default function Recompenses({ etat, maj, aller }: Props) {
 
       {aVenir.map((r) => {
         const debloquee = etatRecompense(r, etat, maintenant) === 'debloquee'
+        // Avancement : le plus en retard des deux critères (jours de série, argent en cagnotte).
+        const avancement = Math.min(1, serieJours / r.palierJours, r.prix > 0 ? argent / r.prix : 1)
         return (
           <section key={r.id} className="carte">
             <p className="valeur">
@@ -128,6 +130,7 @@ export default function Recompenses({ etat, maj, aller }: Props) {
               {chf(r.prix)} · après {r.palierJours} j ·{' '}
               {debloquee ? 'Débloquée !' : texteManque(r.palierJours - serieJours, r.prix - argent)}
             </p>
+            {!debloquee && <progress value={avancement} max={1} aria-label={`Progression vers ${r.nom}`} />}
             {debloquee && <button onClick={() => encaisser(r)}>Encaisser</button>}
             <div className="rangee espace-haut">
               <button

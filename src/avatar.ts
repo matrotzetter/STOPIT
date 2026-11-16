@@ -16,6 +16,31 @@ export function avatarsDe(etat: Etat): Avatar[] {
 /** false si la personne a demandé moins d'animations à son appareil : tout reste alors immobile. */
 export const ANIME = typeof matchMedia === 'undefined' || !matchMedia('(prefers-reduced-motion: reduce)').matches
 
+/** Nombre d'images par seconde des animations. Le pixel art n'a pas besoin de plus, et la batterie dit merci. */
+const IMAGES_PAR_SECONDE = 12
+
+/**
+ * Appelle `dessiner` tout de suite, puis régulièrement tant que la page est visible.
+ * Renvoie la fonction qui arrête l'animation. Si les animations sont coupées, on ne dessine qu'une fois.
+ */
+export function animer(dessiner: (t: number) => void): () => void {
+  dessiner(ANIME ? performance.now() : 0)
+  if (!ANIME) return () => {}
+  let image = 0
+  let derniere = 0
+  // requestAnimationFrame : « rappelle-moi juste avant la prochaine image affichée » (60 fois par seconde).
+  // On ne redessine que si assez de temps a passé depuis la dernière fois.
+  const boucle = (t: number) => {
+    if (t - derniere >= 1000 / IMAGES_PAR_SECONDE) {
+      derniere = t
+      dessiner(t)
+    }
+    image = requestAnimationFrame(boucle)
+  }
+  image = requestAnimationFrame(boucle)
+  return () => cancelAnimationFrame(image)
+}
+
 /** Direction du regard à l'instant t (en millisecondes) : passe doucement de gauche à droite. */
 export function balancement(t: number, decalage = 0): number {
   return Math.sin(t / 1400 + decalage) * 0.45

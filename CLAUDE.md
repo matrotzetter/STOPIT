@@ -25,7 +25,7 @@ commenter le code en français, ne pas supposer qu'il connaît les outils.
 - Toutes les constantes d'équilibrage dans `src/config.ts`.
 - Aucune affirmation médicale. Aucun fichier image ou son externe.
 - Aucune mécanique pour retenir l'utilisateur dans l'app.
-- Interface en français, montants en CHF, thème sombre, gros boutons.
+- Interface en français, montants en CHF, thème sombre, gros boutons, style pixel art.
 
 ## Règles de calcul (`src/logique/calculs.ts`)
 
@@ -105,6 +105,20 @@ commenter le code en français, ne pas supposer qu'il connaît les outils.
   clavier et lecteur d'écran passent par lui. Les bâtiments restent des emojis,
   pixelisés par l'agrandissement (penser à remettre un `fillStyle` opaque avant
   `fillText`, sinon l'emoji devient transparent).
+
+- [x] (m) quatre boucles d'amélioration :
+  1. interface rétro assortie au pixel art (contours `--trait`, ombres dures `--ombre`,
+     police à chasse fixe `--titres` pour titres et chiffres) ; ciel de l'île selon
+     l'heure réelle (`periode` et `CIELS` dans `src/pixels.ts`).
+  2. mode Envie : carte « Tu as arrêté pour », barre de temps, écran de victoire avec
+     les avatars (`Apercu` accepte `content`), air de saxophone (`son('sax')`) si un
+     avatar en a un.
+  3. île : un dessin en pixels par bâtiment (`BATIMENTS` dans `src/pixels.ts`, étoiles
+     dorées pour les niveaux 2 et 3), avatars qui se promènent sur la plage, barre de
+     progression vers la prochaine zone.
+  4. `animer()` dans `src/avatar.ts` : boucle d'animation unique, limitée à 12 images
+     par seconde ; cases de l'île activables avec Espace ; barre de progression par
+     récompense ; quatre tuiles en tête des statistiques.
 
 À chaque fin d'étape : lancer l'app, exécuter les tests, dire quoi tester, faire
 un commit, attendre le retour de l'utilisateur.
