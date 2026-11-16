@@ -8,6 +8,7 @@ import {
   meilleureSerieMs,
   prochaineRecompense,
   serieMs,
+  soldeCagnotte,
   tempsCumuleMs,
   unitesNonConsommees,
 } from '../logique/calculs'
@@ -34,6 +35,8 @@ function salutation(maintenant: number): string {
 export default function Accueil({ etat, maj, aller }: Props) {
   const maintenant = useMaintenant()
   const pasEncoreArrete = maintenant < etat.profil.dateArret
+  /** Ce qui manque pour que la cagnotte repasse au-dessus de zéro (0 s'il n'y a pas de retard). */
+  const retard = Math.max(0, -soldeCagnotte(etat, maintenant))
   const prochaine = prochaineRecompense(etat, maintenant)
   const aujourdhui = cleJour(maintenant)
   const checkinFait = etat.checkins.includes(aujourdhui)
@@ -98,6 +101,8 @@ export default function Accueil({ etat, maj, aller }: Props) {
           <span className="icone" aria-hidden="true">💰</span>
           <p className="discret">Cagnotte</p>
           <p className="valeur or">{chf(cagnotte(etat, maintenant))}</p>
+          {/* Après une rechute plus chère que la cagnotte : on dit combien il reste à rattraper. */}
+          {retard > 0 && <p className="discret">{chf(retard)} à rattraper</p>}
         </div>
         <div className="carte">
           <span className="icone" aria-hidden="true">🚭</span>

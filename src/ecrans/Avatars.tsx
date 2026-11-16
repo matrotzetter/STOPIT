@@ -16,7 +16,6 @@ const APERCU = 120
 
 interface PropsApercu {
   avatar: Avatar
-  className?: string
   /** Décale le balancement, pour que deux avatars côte à côte ne bougent pas ensemble. */
   decalage?: number
   /** true : il sourit, les yeux plissés. */
@@ -24,7 +23,7 @@ interface PropsApercu {
 }
 
 /** Petit dessin animé de l'avatar : il se tourne doucement d'un côté puis de l'autre. */
-export function Apercu({ avatar, className = 'apercu-avatar', decalage = 0, content = false }: PropsApercu) {
+export function Apercu({ avatar, decalage = 0, content = false }: PropsApercu) {
   const ref = useRef<HTMLCanvasElement>(null)
   useEffect(() => {
     const ctx = ref.current!.getContext('2d')!
@@ -35,7 +34,7 @@ export function Apercu({ avatar, className = 'apercu-avatar', decalage = 0, cont
       dessinerAvatar(ctx, avatar, APERCU, APERCU * 2 - 8, APERCU * 2 - 44, content, balancement(t, decalage))
     })
   })
-  return <canvas ref={ref} className={className} width={APERCU * 2} height={APERCU * 2} aria-hidden="true" />
+  return <canvas ref={ref} className="apercu-avatar" width={APERCU * 2} height={APERCU * 2} aria-hidden="true" />
 }
 
 export default function Avatars({ etat, maj, aller }: Props) {

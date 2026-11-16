@@ -1,6 +1,7 @@
 // Tests automatiques des règles de calcul. Lancer avec : npm test
 import { describe, expect, it } from 'vitest'
 import {
+  soldeCagnotte,
   JOUR_MS as J,
   cagnotte,
   cristaux,
@@ -76,6 +77,8 @@ describe('avec une rechute de 3 unités au jour 2', () => {
   it('la cagnotte n’est jamais négative', () => {
     const grosse: Etat = { ...base, rechutes: [{ date: t0 + J, unites: 1000 }] }
     expect(cagnotte(grosse, t0 + 2 * J)).toBe(0)
+    // Le retard reste connu : 2 jours × CHF 5 d'économies − 1000 unités × CHF 0.50.
+    expect(soldeCagnotte(grosse, t0 + 2 * J)).toBeCloseTo(10 - 500)
   })
 })
 

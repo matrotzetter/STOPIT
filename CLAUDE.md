@@ -34,7 +34,8 @@ commenter le code en français, ne pas supposer qu'il connaît les outils.
   est un instant : elle ne retire pas de temps cumulé.
 - Série = temps depuis l'arrêt ou depuis la dernière rechute.
 - Cagnotte = économie par jour × jours cumulés − unités des rechutes × prix par
-  unité − prix des récompenses encaissées. Jamais négative.
+  unité − prix des récompenses encaissées. Jamais négative : un solde négatif
+  s'affiche comme 0, avec le retard à rattraper indiqué à part.
 - Récompense débloquée si série ≥ palier ET cagnotte ≥ prix.
 - Cristaux = gain fixe par check-in, par envie surmontée, par palier de jours
   cumulés atteint. Jamais convertis en argent.
@@ -74,51 +75,36 @@ commenter le code en français, ne pas supposer qu'il connaît les outils.
   `.github/workflows/deploy.yml` teste, construit et publie à chaque push sur main.
   Reste à faire par l'utilisateur : créer le dépôt GitHub, pousser, activer Pages.
 
-- [x] (h) mini-jeu en volume + ambiance cosy + avatars. Le plateau est vu de biais
-  (`APLATI` dans `MiniJeu.tsx`), sans bibliothèque 3D. Les deux avatars
-  (`etat.avatars`, facultatif) sont dessinés par `src/avatar.ts` et réglés dans
-  `src/ecrans/Avatars.tsx` (Réglages → Mes avatars) ; `avatarsDe` complète ce qui
-  manque avec `AVATARS_DEFAUT`. Purement décoratifs.
+- [x] (h) habillage en pixel art, après plusieurs essais abandonnés (volume, 3D, chibi).
+  État actuel, le seul à connaître :
+  - Thème « soirée au coin du feu » : toutes les couleurs sont des variables en tête de
+    `styles.css` (contours `--trait`, ombres dures `--ombre`, police à chasse fixe
+    `--chiffres` pour les chiffres seulement). Tons doux, peu d'animations.
+  - Avatars (`src/avatar.ts`) : 16 × 21 gros pixels. `CALQUES` décrit chaque calque en
+    texte (corps, cheveux, barbe, lunettes, saxophone, dab) ; `dessinerAvatar` les
+    superpose, avec respiration, clignement, regard et dab. Deux avatars dans
+    `etat.avatars` (facultatif, complété par `AVATARS_DEFAUT` via `avatarsDe`), réglés
+    dans `src/ecrans/Avatars.tsx`. Purement décoratifs.
+  - Île et mini-jeu : chacun dans un `<canvas>` de très basse résolution (160 px de
+    large pour l'île, ~115 pour le jeu), agrandi par `image-rendering: pixelated`.
+    Tout se mesure en « gros pixels » entiers, avec `fillRect`. Motifs en texte dans
+    `src/pixels.ts` (feu, nuage, flèche, `BATIMENTS`). Ciel de l'île selon l'heure
+    (`periode`, `CIELS`).
+  - Sur l'île, un SVG transparent posé par-dessus porte une zone par case : clics,
+    clavier et lecteur d'écran passent par lui.
+  - `animer()` dans `src/avatar.ts` : la seule boucle d'animation, 12 images par
+    seconde, coupée par `prefers-reduced-motion` (`ANIME`).
+  - Mini-jeu : `DESSINS_FORMES` est rangé du facile au difficile ; `formesEnJeu(score)`
+    fait glisser un groupe de `PUZZLE_FORMES_EN_JEU` formes d'un cran tous les
+    `PUZZLE_POINTS_PAR_CRAN` points.
+  - Mode Envie : une raison d'arrêter affichée, barre de temps, avatars à la victoire,
+    air de saxophone (`son('sax')`) si un avatar en a un.
+- [x] (i) `soldeCagnotte` (peut être négatif) à côté de `cagnotte` (jamais négative) :
+  l'accueil affiche « CHF x à rattraper » quand une rechute a coûté plus que la cagnotte.
 
-- [x] (i) île en 3D isométrique (`CarteIle` dans `Ile.tsx` : losanges SVG, hauteur
-  selon la zone, cases dessinées du fond vers l'avant via `ORDRE`), en tête de
-  l'accueil. Avatars en volume, option `saxophone`, posés sur la plage de l'île
-  par-dessus le SVG (composant `Apercu` de `Avatars.tsx`, classe `avatar-ile`).
-
-- [x] (j) nouveau thème « soirée au coin du feu » (nuit prune, dégradé ambre → corail,
-  police arrondie ; toutes les couleurs sont des variables en tête de `styles.css`).
-  Mini-jeu plus difficile : `DESSINS_FORMES` est rangé du facile au difficile et
-  `formesEnJeu(score)` fait glisser un groupe de `PUZZLE_FORMES_EN_JEU` formes d'un
-  cran tous les `PUZZLE_POINTS_PAR_CRAN` points.
-
-- [x] (k) avatars en pixel art (16 × 21 gros pixels) : `CALQUES` dans `src/avatar.ts`
-  décrit chaque calque en texte (corps, cheveux, barbe, lunettes, saxophone) ;
-  `dessinerAvatar` les superpose, avec respiration, clignement et regard.
-  Animations (avatars, feu, braises, lucioles, vagues, guirlande) coupées par
-  `ANIME` / `prefers-reduced-motion`. Le mini-jeu se redessine à chaque image.
-
-- [x] (l) île et mini-jeu en pixel art : chacun est dessiné dans un `<canvas>` de
-  très basse résolution (160 px de large pour l'île, ~115 pour le jeu), agrandi par
-  `image-rendering: pixelated`. Tout se mesure en « gros pixels » entiers, avec
-  `fillRect` uniquement. Motifs partagés (feu, nuage, flèche) dans `src/pixels.ts`.
-  Sur l'île, un SVG transparent posé par-dessus porte une zone par case : clics,
-  clavier et lecteur d'écran passent par lui. Les bâtiments restent des emojis,
-  pixelisés par l'agrandissement (penser à remettre un `fillStyle` opaque avant
-  `fillText`, sinon l'emoji devient transparent).
-
-- [x] (m) quatre boucles d'amélioration :
-  1. interface rétro assortie au pixel art (contours `--trait`, ombres dures `--ombre`,
-     police à chasse fixe `--chiffres` pour les chiffres seulement) ; ciel de l'île selon
-     l'heure réelle (`periode` et `CIELS` dans `src/pixels.ts`).
-  2. mode Envie : carte « Tu as arrêté pour », barre de temps, écran de victoire avec
-     les avatars (`Apercu` accepte `content`), air de saxophone (`son('sax')`) si un
-     avatar en a un.
-  3. île : un dessin en pixels par bâtiment (`BATIMENTS` dans `src/pixels.ts`, étoiles
-     dorées pour les niveaux 2 et 3), avatars qui se promènent sur la plage, barre de
-     progression vers la prochaine zone.
-  4. `animer()` dans `src/avatar.ts` : boucle d'animation unique, limitée à 12 images
-     par seconde ; cases de l'île activables avec Espace ; barre de progression par
-     récompense ; quatre tuiles en tête des statistiques.
+Leçons pour la suite : avant toute refonte visuelle, montrer deux ou trois essais
+côte à côte et demander ; poser une question quand la demande peut se comprendre de
+deux façons ; rien n'a encore été vérifié sur l'iPhone.
 
 À chaque fin d'étape : lancer l'app, exécuter les tests, dire quoi tester, faire
 un commit, attendre le retour de l'utilisateur.

@@ -64,14 +64,20 @@ function unitesRechutes(etat: Etat, maintenant: number): number {
 }
 
 /**
- * Cagnotte = économies cumulées − coût des rechutes − récompenses encaissées.
- * Jamais négative.
+ * Solde = économies cumulées − coût des rechutes − récompenses encaissées.
+ * Il peut être négatif : après une rechute plus chère que ce qui était en cagnotte,
+ * il reste un retard à rattraper avant que la cagnotte ne remonte.
  */
-export function cagnotte(etat: Etat, maintenant: number): number {
+export function soldeCagnotte(etat: Etat, maintenant: number): number {
   const economies = economieParJour(etat.profil) * (tempsCumuleMs(etat, maintenant) / JOUR_MS)
   const coutRechutes = unitesRechutes(etat, maintenant) * etat.profil.prixParUnite
   const encaisse = somme(etat.recompenses.filter((r) => r.encaisseeLe).map((r) => r.prix))
-  return Math.max(0, economies - coutRechutes - encaisse)
+  return economies - coutRechutes - encaisse
+}
+
+/** Cagnotte = le solde, mais jamais négative : un retard s'affiche comme 0. */
+export function cagnotte(etat: Etat, maintenant: number): number {
+  return Math.max(0, soldeCagnotte(etat, maintenant))
 }
 
 /** Unités non consommées depuis l'arrêt (rechutes déduites). */
