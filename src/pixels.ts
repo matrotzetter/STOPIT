@@ -41,3 +41,22 @@ export const NUAGE = ['...nnnn.....', '.nnnnnnnn...', 'nnnnnnnnnnn.', 'nnnnnnnnn
 
 /** La flèche ronde affichée quand la partie recommence. */
 export const FLECHE = ['..ccc.c', '.c...cc', 'c...ccc', 'c......', 'c.....c', '.c...c.', '..ccc..']
+
+/** Les moments de la journée, pour la couleur du ciel de l'île. */
+export type Periode = 'nuit' | 'aube' | 'jour' | 'soir'
+
+/** Le moment de la journée à une heure donnée (de 0 à 23). */
+export function periode(heure: number): Periode {
+  if (heure < 5 || heure >= 21) return 'nuit'
+  if (heure < 8) return 'aube'
+  if (heure < 17) return 'jour'
+  return 'soir'
+}
+
+/** Couleurs du ciel, de haut en bas, jusqu'à la mer (les deux dernières bandes). */
+export const CIELS: Record<Periode, string[]> = {
+  nuit: ['#2a2052', '#2b2a5e', '#2a3868', '#274a73', '#23597f', '#1f6f8f'],
+  aube: ['#4a3a78', '#8a5a92', '#d27a8c', '#f4a97c', '#4f93ad', '#3f84a0'],
+  jour: ['#4a9ede', '#62b0e6', '#7fc2ee', '#a3d6f4', '#3d9cc6', '#2f8cb8'],
+  soir: ['#2f2a6b', '#5b3a86', '#a8508a', '#e8785f', '#3a6f95', '#2f6088'],
+}

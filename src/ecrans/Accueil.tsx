@@ -46,7 +46,7 @@ export default function Accueil({ etat, maj, aller }: Props) {
         <path d="M0,2 Q50,14 100,2" />
         {[...Array(11).keys()].map((n) => {
           const p = (n + 0.5) / 11 // position le long du fil, de 0 à 1
-          return <circle key={n} className="etoile" cx={p * 100} cy={2 + 2 * p * (1 - p) * 12} r={1.3} style={{ animationDelay: `${n * 0.35}s` }} />
+          return <rect key={n} className="etoile" x={p * 100 - 1.2} y={0.8 + 2 * p * (1 - p) * 12} width={2.4} height={2.4} style={{ animationDelay: `${n * 0.35}s` }} />
         })}
       </svg>
       <h1>Cagnotte</h1>

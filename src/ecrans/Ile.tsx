@@ -19,7 +19,7 @@ import {
   soldeCristaux,
 } from '../logique/ile'
 import type { Etat } from '../logique/types'
-import { COULEURS_MOTIFS, NUAGE, dessinerMotif } from '../pixels'
+import { CIELS, COULEURS_MOTIFS, NUAGE, dessinerMotif, periode } from '../pixels'
 import { useMaintenant } from '../useMaintenant'
 
 /** Couleur du sol de chaque zone, de la plage (zone 1) au sommet (zone 6). */
@@ -57,9 +57,6 @@ function positionCase(i: number) {
   }
 }
 
-/** Couleurs du ciel de nuit, de haut en bas, jusqu'à la mer. */
-const CIEL = ['#2a2052', '#2b2a5e', '#2a3868', '#274a73', '#23597f', '#1f6f8f']
-const couleurCiel = (y: number) => CIEL[Math.min(CIEL.length - 1, Math.floor((y / PLAGE) * CIEL.length))]
 
 /** Position des étoiles, des vagues et des lucioles. */
 const ETOILES = [
@@ -72,14 +69,21 @@ const LUCIOLES = [
   [50, 60], [78, 46], [96, 70], [66, 80], [112, 52], [84, 30],
 ]
 
-/** Dessine toute l'île dans le canvas. t = l'heure en millisecondes, pour les animations. */
+/**
+ * Dessine toute l'île dans le canvas.
+ * t = le temps en millisecondes, pour les animations ; heure = l'heure qu'il est (0 à 23), pour le ciel.
+ */
 function dessinerIle(
   ctx: CanvasRenderingContext2D,
   etat: Etat,
   degagees: boolean[],
   selection: number | null | undefined,
   t: number,
+  heure: number,
 ) {
+  const moment = periode(heure)
+  const ciel = CIELS[moment]
+  const couleurCiel = (y: number) => ciel[Math.min(ciel.length - 1, Math.floor((y / PLAGE) * ciel.length))]
   const rect = (x: number, y: number, l: number, h: number, couleur: string) => {
     ctx.fillStyle = couleur
     ctx.fillRect(Math.round(x), Math.round(y), l, h)
@@ -87,15 +91,22 @@ function dessinerIle(
 
   // Le ciel et la mer, par bandes de couleur
   for (let y = 0; y < PLAGE; y++) rect(0, y, LARGEUR, 1, couleurCiel(y))
-  ETOILES.forEach(([x, y], n) => Math.sin(t / 700 + n * 2) > -0.4 && rect(x, y, 1, 1, '#ffffff'))
-  // La lune : un disque clair, mordu par un disque de la couleur du ciel (un croissant)
+  // Les étoiles ne sortent que quand il fait sombre.
+  if (moment === 'nuit' || moment === 'soir') {
+    ETOILES.forEach(([x, y], n) => Math.sin(t / 700 + n * 2) > -0.4 && rect(x, y, 1, 1, '#ffffff'))
+  }
+  // Le soleil ou la lune : un disque. Bas sur l'horizon à l'aube et le soir, haut en plein jour.
+  const astre = { nuit: 16, aube: 34, jour: 14, soir: 36 }[moment]
   for (let dy = -6; dy <= 6; dy++) {
     const demi = Math.round(Math.sqrt(36 - dy * dy))
-    rect(22 - demi, 16 + dy, demi * 2, 1, '#fff3c9')
+    rect(22 - demi, astre + dy, demi * 2, 1, moment === 'nuit' ? '#fff3c9' : moment === 'jour' ? '#ffe27a' : '#ffb35c')
   }
-  for (let dy = -5; dy <= 5; dy++) {
-    const demi = Math.round(Math.sqrt(25 - dy * dy))
-    rect(26 - demi, 14 + dy, demi * 2, 1, couleurCiel(14 + dy))
+  if (moment === 'nuit') {
+    // La lune est un croissant : le disque est mordu par un disque de la couleur du ciel.
+    for (let dy = -5; dy <= 5; dy++) {
+      const demi = Math.round(Math.sqrt(25 - dy * dy))
+      rect(26 - demi, 14 + dy, demi * 2, 1, couleurCiel(14 + dy))
+    }
   }
   VAGUES.forEach(([x, y], n) => {
     const glisse = Math.round(Math.sin(t / 900 + n) * 2)
@@ -156,6 +167,7 @@ function dessinerIle(
   }
 
   LUCIOLES.forEach(([x, y], n) => {
+    if (moment === 'jour') return // les lucioles ne brillent pas en plein jour
     if (Math.sin(t / 800 + n * 3) < -0.3) return // elle s'éteint par moments
     rect(x + Math.sin(t / 1100 + n) * 4, y + Math.cos(t / 1300 + n * 2) * 3, 1, 1, '#ffe08a')
   })
@@ -204,7 +216,7 @@ export function CarteIle({ etat, maintenant, selection, onCase }: PropsCarte) {
     const ctx = canvasRef.current!.getContext('2d')!
     let image = 0
     const boucle = () => {
-      dessinerIle(ctx, etat, degagees, selection, ANIME ? performance.now() : 0)
+      dessinerIle(ctx, etat, degagees, selection, ANIME ? performance.now() : 0, new Date(maintenant).getHours())
       // requestAnimationFrame : « rappelle-moi juste avant la prochaine image affichée ».
       if (ANIME) image = requestAnimationFrame(boucle)
     }

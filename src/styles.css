@@ -1,4 +1,5 @@
 /* Thème « soirée au coin du feu » : nuit prune, lumières ambrées.
+   Style rétro, assorti au pixel art : angles nets, contours sombres, ombres dures.
    Pensé pour un téléphone tenu d'une main. Toutes les couleurs sont ici. */
 
 :root {
@@ -12,7 +13,9 @@
   --accent-2: #ff7a8a; /* corail : fin des dégradés */
   --degrade: linear-gradient(135deg, var(--accent), var(--accent-2));
   --or: #ffd166; /* cagnotte */
-  --ombre: 0 10px 30px rgba(0, 0, 0, 0.35);
+  --trait: #120c18; /* contour sombre des cartes et des boutons */
+  --ombre: 0 4px 0 var(--trait); /* ombre dure, sans flou, comme dans un vieux jeu */
+  --titres: ui-monospace, 'SF Mono', Menlo, Consolas, monospace; /* police à chasse fixe : titres et chiffres */
   color-scheme: dark;
 }
 
@@ -42,14 +45,6 @@ main {
   margin: 0 auto;
   /* env(...) : marge supplémentaire pour l'encoche et la barre du bas des téléphones */
   padding: calc(16px + env(safe-area-inset-top)) 16px calc(16px + env(safe-area-inset-bottom));
-  animation: apparition 0.25s ease-out;
-}
-
-/* Chaque écran apparaît en douceur. */
-@keyframes apparition {
-  from {
-    opacity: 0; /* pas de déplacement : il décrocherait le bouton fixé en bas */
-  }
 }
 
 /* Laisse la place du bouton « J'ai une envie » fixé en bas. */
@@ -59,7 +54,8 @@ main.avec-bouton-fixe {
 
 h1 {
   width: fit-content;
-  font-size: 1.9rem;
+  font-family: var(--titres);
+  font-size: 1.8rem;
   font-weight: 800;
   letter-spacing: -0.02em;
   margin: 0 0 10px;
@@ -85,11 +81,14 @@ p {
 
 .carte {
   background: linear-gradient(180deg, var(--carte-haut), var(--carte));
-  border: 1px solid var(--bord);
-  border-radius: 20px;
+  border: 2px solid var(--trait);
+  border-radius: 8px;
   padding: 16px;
-  margin-bottom: 12px;
-  box-shadow: var(--ombre);
+  margin-bottom: 14px;
+  /* un liseré clair en haut, à l'intérieur, puis l'ombre dure en dessous */
+  box-shadow:
+    inset 0 2px 0 rgba(255, 255, 255, 0.08),
+    var(--ombre);
 }
 
 .centre {
@@ -97,7 +96,9 @@ p {
 }
 
 .grand {
-  font-size: 1.7rem;
+  font-family: var(--titres);
+  font-size: 1.5rem;
+  letter-spacing: -0.03em;
   font-weight: 800;
   font-variant-numeric: tabular-nums; /* chiffres de largeur fixe : le compteur ne « saute » pas */
   margin: 0;
@@ -108,7 +109,9 @@ p {
 }
 
 .valeur {
-  font-size: 1.15rem;
+  font-family: var(--titres);
+  font-size: 1rem;
+  letter-spacing: -0.03em;
   font-weight: 700;
   margin: 0;
   font-variant-numeric: tabular-nums;
@@ -139,7 +142,7 @@ p {
   right: 12px;
   width: 34px;
   height: 34px;
-  border-radius: 12px;
+  border-radius: 8px;
   background: rgba(255, 184, 107, 0.14);
   font-size: 1.2rem;
 }
@@ -161,10 +164,10 @@ p {
 progress {
   display: block;
   width: 100%;
-  height: 12px;
+  height: 16px;
   margin: 10px 0;
-  border: 0;
-  border-radius: 999px;
+  border: 2px solid var(--trait);
+  border-radius: 4px;
   overflow: hidden;
   background: rgba(0, 0, 0, 0.35);
   appearance: none;
@@ -177,7 +180,6 @@ progress::-webkit-progress-bar {
 
 progress::-webkit-progress-value {
   background: var(--degrade);
-  border-radius: 999px;
 }
 
 progress::-moz-progress-bar {
@@ -189,27 +191,30 @@ button {
   width: 100%;
   min-height: 56px;
   border: 0;
-  border-radius: 18px;
+  border-radius: 8px;
   background: var(--degrade);
   color: #2b1420;
   font: inherit;
   font-weight: 800;
   cursor: pointer;
-  box-shadow: 0 8px 22px rgba(255, 122, 138, 0.28);
-  transition: transform 0.12s ease-out;
+  border: 2px solid var(--trait);
+  /* bas du bouton plus sombre (son épaisseur), puis l'ombre dure */
+  box-shadow:
+    inset 0 -4px 0 rgba(0, 0, 0, 0.22),
+    var(--ombre);
+  transition: transform 0.08s ease-out;
   -webkit-tap-highlight-color: transparent;
 }
 
-/* Le bouton s'enfonce légèrement sous le doigt. */
+/* Le bouton s'enfonce sous le doigt : il descend et son ombre disparaît. */
 button:active:not(:disabled) {
-  transform: scale(0.97);
+  transform: translateY(3px);
+  box-shadow: inset 0 -2px 0 rgba(0, 0, 0, 0.22);
 }
 
 button.secondaire {
-  background: rgba(255, 255, 255, 0.06);
+  background: #2f2540;
   color: var(--texte);
-  border: 1px solid var(--bord);
-  box-shadow: none;
 }
 
 .bouton-envie {
@@ -220,12 +225,12 @@ button.secondaire {
   width: min(448px, calc(100% - 32px));
   min-height: 72px;
   font-size: 1.3rem;
-  border-radius: 24px;
+  border-radius: 8px;
   animation: halo 3s ease-in-out infinite;
 }
 
 .bouton-envie:active:not(:disabled) {
-  transform: translateX(-50%) scale(0.97);
+  transform: translate(-50%, 3px);
 }
 
 /* Le bouton principal « respire » : son halo grandit et rétrécit lentement. */
@@ -233,12 +238,14 @@ button.secondaire {
   0%,
   100% {
     box-shadow:
-      0 8px 24px rgba(0, 0, 0, 0.5),
+      inset 0 -5px 0 rgba(0, 0, 0, 0.22),
+      0 5px 0 var(--trait),
       0 0 0 0 rgba(255, 184, 107, 0.45);
   }
   50% {
     box-shadow:
-      0 8px 24px rgba(0, 0, 0, 0.5),
+      inset 0 -5px 0 rgba(0, 0, 0, 0.22),
+      0 5px 0 var(--trait),
       0 0 0 10px rgba(255, 184, 107, 0);
   }
 }
@@ -271,17 +278,15 @@ button.puce {
   min-height: 48px;
   margin: 0;
   padding: 0 14px;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.06);
+  border-radius: 4px;
+  background: #2f2540;
   color: var(--texte);
-  border: 1px solid var(--bord);
   font-weight: 500;
-  box-shadow: none;
+  box-shadow: inset 0 -3px 0 rgba(0, 0, 0, 0.22);
 }
 
 button.puce.choisie {
   background: var(--degrade);
-  border-color: transparent;
   color: #2b1420;
   font-weight: 800;
 }
@@ -343,7 +348,7 @@ button.puce.choisie {
 canvas.ile {
   display: block;
   width: 100%;
-  border-radius: 20px;
+  border-radius: 8px;
   box-shadow: var(--ombre);
   image-rendering: pixelated; /* agrandi sans lissage : les gros pixels restent nets */
 }
@@ -385,7 +390,7 @@ svg.guirlande path {
   stroke-width: 0.3;
 }
 
-svg.guirlande circle {
+svg.guirlande rect {
   fill: #ffd98a;
   filter: drop-shadow(0 0 2px #ffb86b);
 }
@@ -395,16 +400,16 @@ button.ile-accueil {
   display: block;
   padding: 0 0 12px;
   margin-bottom: 12px;
-  border-radius: 22px;
+  border-radius: 8px;
   background: linear-gradient(180deg, var(--carte-haut), var(--carte));
   color: var(--texte);
-  border: 1px solid var(--bord);
-  font-weight: 600;
-  box-shadow: var(--ombre);
+  font-family: var(--titres);
+  font-weight: 700;
 }
 
 button.ile-accueil canvas.ile {
   box-shadow: none;
+  border-radius: 6px 6px 0 0;
 }
 
 /* Ligne du catalogue : nom à gauche, coût à droite */
@@ -423,7 +428,7 @@ button.choix-batiment {
   display: block;
   width: 100%;
   margin-bottom: 12px;
-  border-radius: 16px;
+  border-radius: 8px;
   box-shadow: var(--ombre);
   image-rendering: pixelated; /* agrandi sans lissage : les gros pixels restent nets */
   touch-action: none; /* le doigt déplace les formes au lieu de faire défiler la page */
@@ -464,7 +469,7 @@ button.choix-batiment {
   width: 100%;
   min-height: 2px; /* une ligne de base reste visible quand la valeur est zéro */
   background: linear-gradient(180deg, var(--accent), var(--accent-2));
-  border-radius: 6px 6px 0 0;
+  border-radius: 2px 2px 0 0;
 }
 
 .barres .nombre,
@@ -486,7 +491,7 @@ button.choix-batiment {
 .ligne-declencheur .barre {
   height: 14px;
   background: var(--degrade);
-  border-radius: 999px;
+  border-radius: 4px;
 }
 
 .ligne-declencheur .nombre {
@@ -517,9 +522,12 @@ label.bouton {
   place-items: center;
   min-height: 56px;
   margin: 12px 0 0;
-  border: 1px solid var(--bord);
-  border-radius: 18px;
-  background: rgba(255, 255, 255, 0.06);
+  border: 2px solid var(--trait);
+  border-radius: 8px;
+  background: #2f2540;
+  box-shadow:
+    inset 0 -4px 0 rgba(0, 0, 0, 0.22),
+    var(--ombre);
   color: var(--texte);
   font-size: 1rem;
   font-weight: 800;
@@ -557,7 +565,8 @@ label {
 }
 
 h2 {
-  font-size: 1.15rem;
+  font-family: var(--titres);
+  font-size: 1.1rem;
   font-weight: 800;
   margin: 24px 0 8px;
 }
@@ -580,8 +589,8 @@ textarea {
   min-height: 52px;
   margin: 4px 0 12px;
   padding: 0 14px;
-  border: 1px solid var(--bord);
-  border-radius: 14px;
+  border: 2px solid var(--trait);
+  border-radius: 8px;
   background: rgba(0, 0, 0, 0.3);
   color: var(--texte);
   /* 17px : en dessous de 16px, l'iPhone zoome quand on touche un champ */
@@ -612,8 +621,8 @@ button:focus-visible,
   min-height: 52px;
   margin: 0;
   padding: 0 12px;
-  border: 1px solid var(--bord);
-  border-radius: 14px;
+  border: 2px solid var(--trait);
+  border-radius: 8px;
   background: rgba(255, 255, 255, 0.04);
   color: var(--texte);
   font-size: 1rem;
@@ -652,8 +661,8 @@ input[type='color'] {
   height: 48px;
   margin-top: 4px;
   padding: 2px;
-  border: 1px solid var(--bord);
-  border-radius: 14px;
+  border: 2px solid var(--trait);
+  border-radius: 8px;
   background: rgba(0, 0, 0, 0.3);
 }
 
