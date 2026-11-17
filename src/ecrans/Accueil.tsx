@@ -70,8 +70,9 @@ export default function Accueil({ etat, maj, aller }: Props) {
         </section>
       ) : (
         <section className="carte centre">
+          {/* Le grand compteur repart de zéro à chaque rechute ; le temps total reste dans la tuile « Au total ». */}
           <p className="discret">Sans nicotine depuis</p>
-          <p className="grand">{duree(tempsCumuleMs(etat, maintenant), true)}</p>
+          <p className="grand">{duree(serieMs(etat, maintenant), true)}</p>
         </section>
       )}
 
@@ -116,9 +117,9 @@ export default function Accueil({ etat, maj, aller }: Props) {
           </p>
         </div>
         <div className="carte">
-          <span className="icone" aria-hidden="true">🔥</span>
-          <p className="discret">Série</p>
-          <p className="valeur">{dureeCourte(serieMs(etat, maintenant))}</p>
+          <span className="icone" aria-hidden="true">📅</span>
+          <p className="discret">Au total</p>
+          <p className="valeur">{dureeCourte(tempsCumuleMs(etat, maintenant))}</p>
         </div>
         <div className="carte">
           <span className="icone" aria-hidden="true">🏅</span>
