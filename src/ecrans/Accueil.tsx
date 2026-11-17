@@ -78,10 +78,14 @@ export default function Accueil({ etat, maj, aller }: Props) {
       {/* La question du jour, juste sous le compteur : c'est le geste quotidien. */}
       {!pasEncoreArrete && (
         <section className="carte">
-          {rechuteAujourdhui ? (
-            <p>Rechute notée aujourd'hui. Tu repars de là.</p>
-          ) : checkinFait ? (
-            <p>✅ Check-in fait aujourd'hui</p>
+          {rechuteAujourdhui || checkinFait ? (
+            <>
+              <p>{rechuteAujourdhui ? "Rechute notée aujourd'hui. Tu repars de là." : "✅ Check-in fait aujourd'hui"}</p>
+              {/* La journée n'est pas finie : on peut encore noter une rechute (ou une de plus). */}
+              <button className="secondaire" onClick={() => aller('rechute')}>
+                J'en ai pris une
+              </button>
+            </>
           ) : (
             <>
               <p>Toujours sans nicotine aujourd'hui ?</p>
