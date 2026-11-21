@@ -1,7 +1,7 @@
 // Écran « Île » : la carte, les ressources, et la construction sur les cases dégagées.
 import { useState } from 'react'
 import type { Ecran } from '../App'
-import { CATALOGUE, NIVEAU_MAX, PALIERS_JOURS } from '../config'
+import { CATALOGUE, DUREE_CONCERT_MS, NIVEAU_MAX, PALIERS_JOURS } from '../config'
 import { JOUR_MS, tempsCumuleMs } from '../logique/calculs'
 import {
   ZONE_DE_CASE,
@@ -17,6 +17,7 @@ import {
   soldeCristaux,
 } from '../logique/ile'
 import type { Etat } from '../logique/types'
+import { son } from '../sons'
 import { useMaintenant } from '../useMaintenant'
 import { CarteIle } from './CarteIle'
 
@@ -29,6 +30,23 @@ interface Props {
 export default function Ile({ etat, maj, aller }: Props) {
   const maintenant = useMaintenant()
   const [selection, setSelection] = useState<number | null>(null)
+  /** La raison d'arrêter lue dans la bouteille à la mer ; null = bouteille fermée. */
+  const [message, setMessage] = useState<string | null>(null)
+  /** Heure de fin du concert du club de jazz (0 = pas de concert). */
+  const [concertJusqua, setConcertJusqua] = useState(0)
+
+  /** Ouvre la bouteille : une raison au hasard, différente de celle déjà affichée quand c'est possible. */
+  function ouvrirBouteille() {
+    const raisons = etat.profil.raisons.map((r) => r.trim()).filter((r) => r !== '')
+    const autres = raisons.length > 1 ? raisons.filter((r) => r !== message) : raisons
+    setMessage(autres[Math.floor(Math.random() * autres.length)])
+  }
+
+  function lancerConcert() {
+    son('jazz')
+    setConcertJusqua(Date.now() + DUREE_CONCERT_MS)
+    setTimeout(() => setConcertJusqua(0), DUREE_CONCERT_MS) // le bouton redevient utilisable à la fin
+  }
 
   const joursCumules = tempsCumuleMs(etat, maintenant) / JOUR_MS
   const prochainPalier = PALIERS_JOURS.find((p) => p > joursCumules)
@@ -62,7 +80,24 @@ export default function Ile({ etat, maj, aller }: Props) {
         />
       )}
 
-      <CarteIle etat={etat} maintenant={maintenant} selection={selection} onCase={setSelection} />
+      <CarteIle
+        etat={etat}
+        maintenant={maintenant}
+        selection={selection}
+        onCase={setSelection}
+        onBouteille={ouvrirBouteille}
+        concertJusqua={concertJusqua}
+      />
+
+      {message !== null && (
+        <section className="parchemin" aria-live="polite">
+          <p className="parchemin-titre">Un message dans la bouteille :</p>
+          <p className="parchemin-texte">« {message} »</p>
+          <button className="secondaire" onClick={() => setMessage(null)}>
+            Refermer
+          </button>
+        </section>
+      )}
 
       {monuments.length > 0 && (
         <p className="discret">🏆 Monuments : {monuments.map((r) => r.nom).join(', ')}</p>
@@ -70,7 +105,7 @@ export default function Ile({ etat, maj, aller }: Props) {
 
       {/* ---------- Panneau de la case sélectionnée ---------- */}
       {selection === null ? (
-        <p className="discret">Touche une case dégagée pour construire.</p>
+        <p className="discret">Touche une case dégagée pour construire, ou la bouteille sur la plage.</p>
       ) : !degagee ? (
         <section className="carte">
           <p>🌫️ Cette case est encore dans la brume (zone {ZONE_DE_CASE[selection] + 1}).</p>
@@ -81,6 +116,11 @@ export default function Ile({ etat, maj, aller }: Props) {
             {modeleBatiment.emoji} {modeleBatiment.nom}
             {estAmeliorable(modeleBatiment) && ` · niveau ${batiment.niveau}/${NIVEAU_MAX}`}
           </p>
+          {batiment.type === 'club' && (
+            <button disabled={concertJusqua > 0} onClick={lancerConcert}>
+              🎷 Écouter le concert
+            </button>
+          )}
           {estAmeliorable(modeleBatiment) &&
             batiment.niveau < NIVEAU_MAX &&
             (() => {

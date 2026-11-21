@@ -15,6 +15,9 @@
   --or: #ffd166; /* cagnotte */
   --trait: #17111e; /* contour sombre des cartes et des boutons */
   --ombre: 0 3px 0 var(--trait); /* ombre dure, sans flou, comme dans un vieux jeu */
+  --parchemin: #ecdcb0; /* papier du message dans la bouteille */
+  --parchemin-bord: #c9b07a;
+  --encre: #4a3222;
   --chiffres: ui-monospace, 'SF Mono', Menlo, Consolas, monospace; /* police à chasse fixe, pour les chiffres seulement */
   color-scheme: dark;
 }
@@ -687,4 +690,35 @@ canvas.apercu-avatar {
 /* Dans les tuiles, la valeur tient toujours sur une seule ligne. */
 .tuiles .valeur {
   white-space: nowrap;
+}
+
+/* Le message de la bouteille à la mer : un papier clair, double bord et ombre dure. */
+.parchemin {
+  background: var(--parchemin);
+  color: var(--encre);
+  border: 2px solid var(--trait);
+  border-radius: 4px;
+  box-shadow:
+    inset 0 0 0 4px var(--parchemin-bord),
+    var(--ombre);
+  padding: 18px 20px;
+  margin-bottom: 18px;
+}
+
+.parchemin-titre {
+  margin: 0 0 6px;
+  font-size: 0.9rem;
+  opacity: 0.8;
+}
+
+.parchemin-texte {
+  margin: 0 0 14px;
+  font-size: 1.15rem;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+.parchemin button.secondaire {
+  background: var(--encre);
+  color: var(--parchemin);
 }

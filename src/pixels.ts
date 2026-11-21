@@ -100,8 +100,92 @@ export const BATIMENTS: Record<string, string[]> = {
     'sSsxxxxxsSs',
     'sssxxxxxsss',
   ],
+  // Le club de jazz : une petite scène couverte, un piano et un musicien au saxophone.
+  club: [
+    '.RRRRRRRRR.',
+    'RrRrRrRrRrR',
+    '.T.......T.',
+    '.T.....p.T.',
+    '.Txxx..xyT.',
+    '.Texe..xyT.',
+    '.Tx.x..x.T.',
+    'TTTTTTTTTTT',
+    '.ttttttttt.',
+  ],
   fleurs: ['.p...j.', 'pjp.jrj', '.v...v.', '.v.p.v.'],
   arbre: ['..vvv..', '.vvvvv.', 'vvVvvvv', 'vvvvVvv', '.vvvvv.', '..vVv..', '...T...', '...T...', '..TTT..'],
   fontaine: ['....l....', '...lLl...', '....l....', '..sssss..', '.slLlLls.', '.sssssss.', '..SSSSS..'],
   statue: ['.sss.', '.sSs.', '.sss.', 'sssss', '.sss.', '.sss.', '.s.s.', 'SSSSS', 'SSSSS'],
+}
+
+// ---------- La vie sur l'île ----------
+
+/** Un voilier, qui passe au large de temps en temps. */
+export const BATEAU = ['....r....', '....ee...', '....eee..', '....eeee.', '....T....', 'ttttttttt', '.TTTTTTT.']
+
+/** Une mouette, ailes levées puis ailes à plat. */
+export const MOUETTE = [
+  ['e...e', '.e.e.'],
+  ['ee.ee', '..e..'],
+]
+
+/** Un mouton, deux images pour faire bouger ses pattes. */
+export const MOUTON = [
+  ['.eee.', 'eeeex', 'eeee.', '.x.x.'],
+  ['.eee.', 'eeeex', 'eeee.', 'x..x.'],
+]
+
+/** Une bouteille échouée sur la plage, un message roulé à l'intérieur. */
+export const BOUTEILLE = ['...LLLLL', 'TllLeeeL', '...LLLLL']
+
+/** Une croche, qui monte du club de jazz pendant le concert. */
+export const NOTE = ['.jj', '.j.', 'jj.', 'jj.']
+
+/** Où sort la fumée sur chaque bâtiment : colonne du motif (la fumée part de sa première ligne). */
+export const CHEMINEES: Record<string, number> = { cabane: 6, atelier: 6 }
+
+// ---------- Les saisons ----------
+
+export type Saison = 'printemps' | 'ete' | 'automne' | 'hiver'
+
+/** La saison d'une date (hémisphère nord) : décembre à février = hiver, etc. */
+export function saison(date: Date): Saison {
+  const mois = date.getMonth() // 0 = janvier, 11 = décembre
+  if (mois === 11 || mois <= 1) return 'hiver'
+  if (mois <= 4) return 'printemps'
+  if (mois <= 7) return 'ete'
+  return 'automne'
+}
+
+export interface Habillage {
+  /** Couleur du sol de chaque zone, de la plage (zone 1) au sommet (zone 6). */
+  zones: string[]
+  /** Couleurs des motifs remplacées pour la saison (feuillage surtout). */
+  motifs: Record<string, string>
+  /** Ce qui tombe du ciel : nombre de particules et leurs couleurs. */
+  chute: { nombre: number; couleurs: string[]; largeur: number }
+}
+
+/** L'habillage de l'île à chaque saison. */
+export const SAISONS: Record<Saison, Habillage> = {
+  printemps: {
+    zones: ['#d9c58a', '#b4d26e', '#8fc46a', '#68ab64', '#8f9e8a', '#dfe6ea'],
+    motifs: { v: '#7cc860', V: '#4f9a48' },
+    chute: { nombre: 8, couleurs: ['#f6b8d0', '#fbe0ea'], largeur: 1 }, // pétales
+  },
+  ete: {
+    zones: ['#d9c58a', '#a9c46c', '#7fb069', '#5a9a5f', '#8d9a8a', '#c9d3da'],
+    motifs: {},
+    chute: { nombre: 0, couleurs: [], largeur: 1 },
+  },
+  automne: {
+    zones: ['#d9c58a', '#bfb062', '#a99a52', '#8c7d4a', '#8d8a7a', '#c9d3da'],
+    motifs: { v: '#e0833a', V: '#b8532e' },
+    chute: { nombre: 9, couleurs: ['#e0833a', '#c9562e', '#f2b04a'], largeur: 2 }, // feuilles
+  },
+  hiver: {
+    zones: ['#e4dcc4', '#c4d2c6', '#aebfb2', '#a3b5ac', '#e8eef2', '#ffffff'],
+    motifs: { v: '#4f7f62', V: '#3a6650' },
+    chute: { nombre: 16, couleurs: ['#ffffff', '#e6eef5'], largeur: 1 }, // flocons
+  },
 }

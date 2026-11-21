@@ -108,6 +108,18 @@ commenter le code en français, ne pas supposer qu'il connaît les outils.
   redemandé au retour dans l'app ; `overrides` dans `package.json` force `glob` ≥ 14.0.6
   (alertes de sécurité de `workbox-build`) : à retirer quand `vite-plugin-pwa` l'inclura.
 
+- [x] (k) île vivante, purement visuelle :
+  - Saisons (`saison`, `SAISONS` dans `src/pixels.ts`) : couleurs du sol et du feuillage,
+    pétales, feuilles ou flocons qui tombent ; en novembre, quelques flocons ; neige sur
+    les toits en hiver.
+  - Vie : voilier au large, mouettes (sauf la nuit), fumée (`CHEMINEES`), mouton près de
+    la ferme. Ce qui passe devant les cases est dessiné après elles (`pardessus`).
+  - Décoration « Club de jazz » (💎 60) : bouton « Écouter le concert » → `son('jazz')`
+    (ii-V-I swing généré dans `src/sons.ts`) ; pendant `DUREE_CONCERT_MS`, les avatars
+    s'arrêtent, le premier joue du sax, des notes montent.
+  - Bouteille à la mer sur la plage (si des raisons existent) : cliquable sur l'écran Île
+    seulement, affiche une raison au hasard dans un `.parchemin`.
+
 Leçons pour la suite : avant toute refonte visuelle, montrer deux ou trois essais
 côte à côte et demander ; poser une question quand la demande peut se comprendre de
 deux façons ; rien n'a encore été vérifié sur l'iPhone.

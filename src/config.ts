@@ -44,6 +44,9 @@ export const NIVEAU_MAX = 3
 /** Cristaux pour améliorer un bâtiment : cette valeur × son niveau actuel. */
 export const CRISTAUX_AMELIORATION = 20
 
+/** Durée d'un concert au club de jazz, en millisecondes (le temps de l'air joué par son('jazz')). */
+export const DUREE_CONCERT_MS = 6000
+
 export interface ModeleBatiment {
   id: string
   nom: string
@@ -71,6 +74,7 @@ export const CATALOGUE: ModeleBatiment[] = [
   // Décorations : ne coûtent que des cristaux, non améliorables.
   { id: 'fleurs', nom: 'Fleurs', emoji: '🌸', energie: 0, cristaux: 20, zoneMin: 0 },
   { id: 'arbre', nom: 'Arbre', emoji: '🌳', energie: 0, cristaux: 30, zoneMin: 0 },
+  { id: 'club', nom: 'Club de jazz', emoji: '🎷', energie: 0, cristaux: 60, zoneMin: 1 },
   { id: 'fontaine', nom: 'Fontaine', emoji: '⛲', energie: 0, cristaux: 80, zoneMin: 2 },
   { id: 'statue', nom: 'Statue', emoji: '🗿', energie: 0, cristaux: 150, zoneMin: 4 },
 ]
