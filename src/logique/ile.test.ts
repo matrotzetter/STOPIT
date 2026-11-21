@@ -6,9 +6,13 @@ import {
   ameliorer,
   casesDegagees,
   construire,
+  coutTotal,
+  deconstruire,
   energie,
   refusAmelioration,
   refusConstruction,
+  refusDeconstruction,
+  modele,
   soldeCristaux,
 } from './ile'
 import type { Etat } from './types'
@@ -130,5 +134,28 @@ describe('énergie et bâtiments', () => {
     expect(energie(apres, jour4)).toBe(energie(avant, jour4))
     expect(soldeCristaux(apres, jour4)).toBe(soldeCristaux(avant, jour4))
     expect(apres.batiments).toEqual(avant.batiments)
+  })
+})
+
+describe('déconstruire', () => {
+  const jour4 = t0 + 4 * J
+  const caseDegagee = 62
+
+  it('rend tout ce que le bâtiment avait coûté, améliorations comprises', () => {
+    const niveau2 = ameliorer(construire(base, caseDegagee, 'cabane', jour4), caseDegagee, jour4)
+    expect(coutTotal(modele('cabane')!, 2)).toEqual({ energie: 300, cristaux: 20 })
+    const vide = deconstruire(niveau2, caseDegagee, jour4)
+    expect(vide.batiments).toEqual([])
+    expect(energie(vide, jour4)).toBeCloseTo(energie(base, jour4))
+    expect(soldeCristaux(vide, jour4)).toBe(soldeCristaux(base, jour4))
+  })
+
+  it('ne touche ni une case vide, ni une case dans la brume', () => {
+    expect(refusDeconstruction(base, caseDegagee, jour4)).toMatch(/Aucun/)
+    expect(deconstruire(base, caseDegagee, jour4)).toBe(base)
+    // Un bâtiment posé, puis recouvert par la brume après une rechute.
+    const cache: Etat = { ...construire(base, caseDegagee, 'cabane', jour4), rechutes: [{ date: jour4, unites: 1 }] }
+    expect(refusDeconstruction(cache, caseDegagee, jour4)).toMatch(/brume/)
+    expect(deconstruire(cache, caseDegagee, jour4)).toBe(cache)
   })
 })
