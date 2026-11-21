@@ -82,22 +82,30 @@ export function coutAmelioration(m: ModeleBatiment, niveau: number) {
   return { energie: m.energie * niveau, cristaux: CRISTAUX_AMELIORATION * niveau }
 }
 
+/** Tout ce qu'a coûté un bâtiment arrivé à ce niveau : sa construction et ses améliorations. */
+export function coutTotal(m: ModeleBatiment, niveau: number) {
+  let energieTotale = m.energie
+  let cristauxTotaux = m.cristaux
+  for (let n = 1; n < niveau; n++) {
+    const cout = coutAmelioration(m, n)
+    energieTotale += cout.energie
+    cristauxTotaux += cout.cristaux
+  }
+  return { energie: energieTotale, cristaux: cristauxTotaux }
+}
+
 /** Total dépensé pour tous les bâtiments posés (construction + améliorations). */
 function depenses(etat: Etat) {
-  let energie = 0
+  let energieDepensee = 0
   let cristauxDepenses = 0
   for (const b of etat.batiments) {
     const m = modele(b.type)
     if (!m) continue
-    energie += m.energie
-    cristauxDepenses += m.cristaux
-    for (let niveau = 1; niveau < b.niveau; niveau++) {
-      const cout = coutAmelioration(m, niveau)
-      energie += cout.energie
-      cristauxDepenses += cout.cristaux
-    }
+    const cout = coutTotal(m, b.niveau)
+    energieDepensee += cout.energie
+    cristauxDepenses += cout.cristaux
   }
-  return { energie, cristaux: cristauxDepenses }
+  return { energie: energieDepensee, cristaux: cristauxDepenses }
 }
 
 /** Énergie disponible = heures cumulées sans nicotine × taux horaire − énergie dépensée. */
@@ -150,4 +158,21 @@ export function ameliorer(etat: Etat, numCase: number, maintenant: number): Etat
     ...etat,
     batiments: etat.batiments.map((b) => (b.case === numCase ? { ...b, niveau: b.niveau + 1 } : b)),
   }
+}
+
+/** Explique pourquoi on ne peut pas déconstruire le bâtiment de cette case, ou renvoie null. */
+export function refusDeconstruction(etat: Etat, numCase: number, maintenant: number): string | null {
+  if (!etat.batiments.some((b) => b.case === numCase)) return 'Aucun bâtiment ici'
+  if (!casesDegagees(etat, maintenant)[numCase]) return 'Case encore dans la brume'
+  return null
+}
+
+/**
+ * Retire le bâtiment de la case. Ne change rien si ce n'est pas permis.
+ * Comme les dépenses sont recalculées à partir des bâtiments posés, tout ce qu'il
+ * avait coûté (construction et améliorations, voir coutTotal) redevient disponible.
+ */
+export function deconstruire(etat: Etat, numCase: number, maintenant: number): Etat {
+  if (refusDeconstruction(etat, numCase, maintenant)) return etat
+  return { ...etat, batiments: etat.batiments.filter((b) => b.case !== numCase) }
 }

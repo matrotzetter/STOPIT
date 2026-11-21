@@ -120,6 +120,10 @@ commenter le code en français, ne pas supposer qu'il connaît les outils.
   - Bouteille à la mer sur la plage (si des raisons existent) : cliquable sur l'écran Île
     seulement, affiche une raison au hasard dans un `.parchemin`.
 
+- [x] (l) déconstruire : `deconstruire` / `refusDeconstruction` dans `src/logique/ile.ts`
+  (testés). Rend tout le coût (`coutTotal` : construction + améliorations), ce qui découle
+  directement des dépenses recalculées. Interdit sous la brume. Bouton avec confirmation.
+
 Leçons pour la suite : avant toute refonte visuelle, montrer deux ou trois essais
 côte à côte et demander ; poser une question quand la demande peut se comprendre de
 deux façons ; rien n'a encore été vérifié sur l'iPhone.

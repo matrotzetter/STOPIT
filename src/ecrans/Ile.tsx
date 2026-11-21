@@ -9,6 +9,8 @@ import {
   casesDegagees,
   construire,
   coutAmelioration,
+  coutTotal,
+  deconstruire,
   energie,
   estAmeliorable,
   modele,
@@ -30,6 +32,19 @@ interface Props {
 export default function Ile({ etat, maj, aller }: Props) {
   const maintenant = useMaintenant()
   const [selection, setSelection] = useState<number | null>(null)
+  /** true après un premier appui sur « Déconstruire » : on attend la confirmation. */
+  const [confirmer, setConfirmer] = useState(false)
+
+  /** Choisit une case (et annule une déconstruction en attente sur l'ancienne). */
+  function choisirCase(numCase: number) {
+    setSelection(numCase)
+    setConfirmer(false)
+  }
+
+  function retirer(numCase: number) {
+    maj(deconstruire(etat, numCase, Date.now()))
+    setConfirmer(false)
+  }
   /** La raison d'arrêter lue dans la bouteille à la mer ; null = bouteille fermée. */
   const [message, setMessage] = useState<string | null>(null)
   /** Heure de fin du concert du club de jazz (0 = pas de concert). */
@@ -84,7 +99,7 @@ export default function Ile({ etat, maj, aller }: Props) {
         etat={etat}
         maintenant={maintenant}
         selection={selection}
-        onCase={setSelection}
+        onCase={choisirCase}
         onBouteille={ouvrirBouteille}
         concertJusqua={concertJusqua}
       />
@@ -135,6 +150,28 @@ export default function Ile({ etat, maj, aller }: Props) {
                 </>
               )
             })()}
+          {(() => {
+            // Déconstruire rend tout ce que le bâtiment a coûté : on l'affiche avant de confirmer.
+            const rendu = coutTotal(modeleBatiment, batiment.niveau)
+            const gain = [rendu.energie > 0 && `⚡ ${rendu.energie}`, rendu.cristaux > 0 && `💎 ${rendu.cristaux}`]
+              .filter(Boolean)
+              .join(' · ')
+            return confirmer ? (
+              <>
+                <p>
+                  Retirer « {modeleBatiment.nom} » ? Tu récupères {gain}.
+                </p>
+                <button onClick={() => retirer(selection)}>Oui, déconstruire</button>
+                <button className="secondaire" onClick={() => setConfirmer(false)}>
+                  Non, garder
+                </button>
+              </>
+            ) : (
+              <button className="secondaire" onClick={() => setConfirmer(true)}>
+                Déconstruire (récupère {gain})
+              </button>
+            )
+          })()}
         </section>
       ) : (
         <section className="carte">
