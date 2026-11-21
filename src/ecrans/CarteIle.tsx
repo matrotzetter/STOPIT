@@ -3,10 +3,23 @@ import { useEffect, useRef } from 'react'
 import { HAUTEUR_AVATAR, animer, avatarsDe, dessinerAvatar } from '../avatar'
 import { TAILLE, ZONE_DE_CASE, casesDegagees, modele } from '../logique/ile'
 import type { Etat } from '../logique/types'
-import { BATIMENTS, CIELS, COULEURS_MOTIFS, FEU, NUAGE, dessinerMotif, periode } from '../pixels'
-
-/** Couleur du sol de chaque zone, de la plage (zone 1) au sommet (zone 6). */
-const COULEURS_ZONES = ['#d9c58a', '#a9c46c', '#7fb069', '#5a9a5f', '#8d9a8a', '#c9d3da']
+import {
+  BATEAU,
+  BATIMENTS,
+  BOUTEILLE,
+  CHEMINEES,
+  CIELS,
+  COULEURS_MOTIFS,
+  FEU,
+  MOUETTE,
+  MOUTON,
+  NOTE,
+  NUAGE,
+  SAISONS,
+  dessinerMotif,
+  periode,
+  saison,
+} from '../pixels'
 
 // L'île est dessinée en « pixel art isométrique » : on la regarde de biais et d'en
 // haut. Chaque case est un losange posé sur un bloc de terre, d'autant plus haut
@@ -24,6 +37,9 @@ const HAUT = 4 + 5 * MARCHE
 /** Haut de la plage, sous l'île, et hauteur totale du dessin. */
 const PLAGE = HAUT + TAILLE * H + SOCLE + 2
 const HAUTEUR = PLAGE + HAUTEUR_AVATAR + 3
+/** Coin haut gauche de la bouteille échouée, au bord de l'eau. */
+const BOUTEILLE_X = 76
+const BOUTEILLE_Y = PLAGE + 3
 
 /** Les cases, du fond vers l'avant : celles de devant sont dessinées en dernier et cachent les autres. */
 const ORDRE = ZONE_DE_CASE.map((_, i) => i).sort(
@@ -52,9 +68,13 @@ const LUCIOLES = [
   [50, 60], [78, 46], [96, 70], [66, 80], [112, 52], [84, 30],
 ]
 
+/** true si l'utilisateur a noté au moins une raison d'arrêter : la bouteille à la mer en contient une. */
+const aDesRaisons = (etat: Etat) => etat.profil.raisons.some((r) => r.trim() !== '')
+
 /**
  * Dessine toute l'île dans le canvas.
- * t = le temps en millisecondes, pour les animations ; heure = l'heure qu'il est (0 à 23), pour le ciel.
+ * t = le temps en millisecondes, pour les animations ; quand = la date et l'heure, pour le ciel et la saison ;
+ * concert = true pendant que le club de jazz joue.
  */
 function dessinerIle(
   ctx: CanvasRenderingContext2D,
@@ -62,9 +82,14 @@ function dessinerIle(
   degagees: boolean[],
   selection: number | null | undefined,
   t: number,
-  heure: number,
+  quand: Date,
+  concert: boolean,
 ) {
-  const moment = periode(heure)
+  const moment = periode(quand.getHours())
+  const laSaison = saison(quand)
+  const habillage = SAISONS[laSaison]
+  // Les couleurs des motifs, avec celles de la saison par-dessus (feuillage roux en automne, etc.).
+  const couleurs = { ...COULEURS_MOTIFS, ...habillage.motifs }
   const ciel = CIELS[moment]
   const couleurCiel = (y: number) => ciel[Math.min(ciel.length - 1, Math.floor((y / PLAGE) * ciel.length))]
   const rect = (x: number, y: number, l: number, h: number, couleur: string) => {
@@ -96,6 +121,13 @@ function dessinerIle(
     rect(x + glisse, y, 4, 1, 'rgba(255, 255, 255, 0.35)')
     rect(x + glisse + 4, y + 1, 3, 1, 'rgba(255, 255, 255, 0.35)')
   })
+  // Un voilier passe au large : il met un peu plus d'une minute à traverser, puis disparaît autant.
+  // Il est dessiné avant l'île, qui le cache quand il passe derrière.
+  const course = ((t / 1000) * 2.5) % 340
+  if (course < 180) dessinerMotif(ctx, BATEAU, Math.round(course - 12), 68 + Math.round(Math.sin(t / 700)), couleurs)
+
+  /** Ce qui doit passer devant toutes les cases (fumée, mouton, notes) : dessiné après la boucle. */
+  const pardessus: (() => void)[] = []
 
   // Les cases, du fond vers l'avant
   for (const i of ORDRE) {
@@ -109,7 +141,7 @@ function dessinerIle(
       rect(x + L / 2 - 1 - n, haut, 1, profondeur, '#6a5038') // flanc droit
     }
     // Le dessus : un losange, ligne par ligne (4, 8, 12, 16, 20 pixels puis l'inverse).
-    const couleur = degagees[i] ? COULEURS_ZONES[zone] : ['#b8c2cc', '#aeb9c4', '#c2cbd4'][i % 3]
+    const couleur = degagees[i] ? habillage.zones[zone] : ['#b8c2cc', '#aeb9c4', '#c2cbd4'][i % 3]
     for (let dy = 0; dy < H; dy++) {
       const largeur = 4 * (dy < H / 2 ? dy + 1 : H - dy)
       rect(x - largeur / 2, y + dy, largeur, 1, couleur)
@@ -135,6 +167,8 @@ function dessinerIle(
     // Deux brins sombres pour donner du grain au sol
     rect(x - 4 + ((i * 5) % 8), y + 4 + (i % 3), 1, 1, 'rgba(0, 0, 0, 0.18)')
     rect(x + 3 - ((i * 3) % 7), y + 3 + ((i * 2) % 4), 1, 1, 'rgba(255, 255, 255, 0.2)')
+    // Au printemps, une case sur trois a une petite fleur.
+    if (laSaison === 'printemps' && i % 3 === 0) rect(x + 2 - (i % 5), y + 5, 1, 1, '#f6b8d0')
     const batiment = etat.batiments.find((b) => b.case === i)
     if (batiment) {
       // Le bâtiment est debout sur la case, centré, les pieds un peu en avant du milieu.
@@ -143,9 +177,46 @@ function dessinerIle(
       const gauche = x - Math.floor(motif[0].length / 2)
       const haut = y + H / 2 + 2 - motif.length
       rect(gauche, y + H / 2 + 2, motif[0].length, 1, 'rgba(0, 0, 0, 0.25)') // ombre au sol
-      dessinerMotif(ctx, motif, gauche, haut, COULEURS_MOTIFS)
+      dessinerMotif(ctx, motif, gauche, haut, couleurs)
+      if (laSaison === 'hiver' && batiment.type !== 'feu') {
+        // En hiver, de la neige sur le haut du bâtiment : le pixel le plus haut de chaque colonne devient blanc.
+        for (let colonne = 0; colonne < motif[0].length; colonne++) {
+          const ligne = motif.findIndex((l) => l[colonne] !== '.')
+          if (ligne >= 0) rect(gauche + colonne, haut + ligne, 1, 1, '#ffffff')
+        }
+      }
+      const cheminee = CHEMINEES[batiment.type]
+      if (cheminee !== undefined) {
+        // De la fumée : trois bouffées qui montent, s'écartent et s'effacent, l'une après l'autre.
+        pardessus.push(() => {
+          for (let k = 0; k < 3; k++) {
+            const avance = (t / 1600 + k / 3 + i * 0.37) % 1 // de 0 (sortie) à 1 (disparue)
+            const cote = Math.round(Math.sin(avance * 6 + k) * 1.5)
+            const taille = avance > 0.5 ? 2 : 1
+            rect(gauche + cheminee + cote, haut - 1 - avance * 9, taille, taille, `rgba(225, 225, 235, ${0.7 * (1 - avance)})`)
+          }
+        })
+      }
+      if (batiment.type === 'ferme') {
+        // Un mouton broute à côté de la ferme : il avance et recule d'un pixel, en bougeant les pattes.
+        const pas = Math.sin(t / 2500 + i)
+        const motifMouton = MOUTON[Math.abs(pas) > 0.5 ? Math.floor(t / 300) % 2 : 0]
+        pardessus.push(() => dessinerMotif(ctx, motifMouton, x + 5 + Math.round(pas), y + H / 2 - 1, couleurs))
+      }
+      if (batiment.type === 'club' && concert) pardessus.push(() => notes(x + 3, haut - 2, i))
       // Niveaux 2 et 3 : une ou deux petites étoiles dorées au-dessus.
       for (let n = 1; n < batiment.niveau; n++) rect(x - batiment.niveau * 2 + n * 4 - 1, haut - 4, 2, 2, '#ffd166')
+    }
+  }
+
+  pardessus.forEach((dessiner) => dessiner())
+
+  // Mouettes, sauf la nuit : elles traversent le ciel en battant des ailes.
+  if (moment !== 'nuit') {
+    for (let n = 0; n < 2; n++) {
+      const x = (((t / 1000) * 6 + n * 90) % 220) - 20
+      const y = 22 + n * 9 + Math.round(Math.sin(t / 600 + n) * 2)
+      dessinerMotif(ctx, MOUETTE[Math.floor(t / 250 + n) % 2], Math.round(x), y, couleurs)
     }
   }
 
@@ -155,10 +226,20 @@ function dessinerIle(
     rect(x + Math.sin(t / 1100 + n) * 4, y + Math.cos(t / 1300 + n * 2) * 3, 1, 1, '#ffe08a')
   })
 
+  // Ce qui tombe du ciel selon la saison (pétales, feuilles, flocons). En novembre, quelques flocons se mêlent aux feuilles.
+  tomber(habillage.chute.nombre, habillage.chute.couleurs, habillage.chute.largeur, 0)
+  if (laSaison === 'automne' && quand.getMonth() === 10) tomber(5, ['#ffffff'], 1, 17)
+
   // La plage : les avatars aux deux bouts, et un trophée par récompense encaissée
   rect(0, PLAGE, LARGEUR, HAUTEUR - PLAGE, '#e8d9a8')
   rect(0, PLAGE, LARGEUR, 1, '#f6efd2')
   for (let n = 0; n < 24; n++) rect((n * 37) % LARGEUR, PLAGE + 3 + ((n * 11) % 18), 1, 1, '#d6c48c') // grains de sable
+  if (aDesRaisons(etat)) {
+    // La bouteille à la mer, avec un reflet qui brille de temps en temps.
+    rect(BOUTEILLE_X, BOUTEILLE_Y + BOUTEILLE.length, BOUTEILLE[0].length, 1, 'rgba(0, 0, 0, 0.15)')
+    dessinerMotif(ctx, BOUTEILLE, BOUTEILLE_X, BOUTEILLE_Y, couleurs)
+    if (Math.sin(t / 900) > 0.85) rect(BOUTEILLE_X + 5, BOUTEILLE_Y, 1, 1, '#ffffff')
+  }
   const monuments = etat.recompenses.filter((r) => r.encaisseeLe)
   ctx.font = '10px sans-serif'
   ctx.textAlign = 'center'
@@ -170,12 +251,39 @@ function dessinerIle(
     ctx.fillText(`+${monuments.length - 8}`, 36 + 8 * 11, HAUTEUR - 5)
   }
   avatarsDe(etat).forEach((avatar, n) => {
+    if (concert) {
+      // Pendant le concert, ils s'arrêtent et sourient ; le premier joue du saxophone, des notes s'envolent.
+      const x = n === 0 ? 50 : LARGEUR - 50
+      rect(x - 6, HAUTEUR - 3, 12, 1, 'rgba(0, 0, 0, 0.2)')
+      dessinerAvatar(ctx, n === 0 ? { ...avatar, saxophone: true } : avatar, x, HAUTEUR - 2, HAUTEUR_AVATAR, true, n === 0 ? 0.5 : -0.5)
+      if (n === 0) notes(x + 6, HAUTEUR - HAUTEUR_AVATAR - 2, 0.5)
+      return
+    }
     // Chacun se promène lentement sur sa moitié de plage, et regarde dans le sens de la marche.
     const pas = t / 9000 + n * 2
     const x = Math.round((n === 0 ? 40 : LARGEUR - 40) + Math.sin(pas) * 28)
     rect(x - 6, HAUTEUR - 3, 12, 1, 'rgba(0, 0, 0, 0.2)')
     dessinerAvatar(ctx, avatar, x, HAUTEUR - 2, HAUTEUR_AVATAR, false, Math.cos(pas))
   })
+
+  /** Trois croches qui montent depuis (x, y), ondulent et s'effacent. `decalage` évite qu'elles partent toutes ensemble. */
+  function notes(x: number, y: number, decalage: number) {
+    for (let k = 0; k < 3; k++) {
+      const avance = (t / 1400 + k / 3 + decalage) % 1 // de 0 (sortie) à 1 (disparue)
+      ctx.globalAlpha = 1 - avance // de plus en plus transparente
+      dessinerMotif(ctx, NOTE, x + Math.round(Math.sin(avance * 5 + k) * 2), Math.round(y - avance * 12), couleurs)
+    }
+    ctx.globalAlpha = 1
+  }
+
+  /** Fait tomber `nombre` particules d'une largeur donnée, en biais, de haut en bas du dessin. */
+  function tomber(nombre: number, teintes: string[], largeur: number, decalage: number) {
+    for (let n = 0; n < nombre; n++) {
+      const y = ((t / 90 + n * 53 + decalage * 7) % (HAUTEUR + 10)) - 5
+      const x = (n * 37 + decalage + Math.sin(t / 1500 + n) * 6 + LARGEUR) % LARGEUR
+      rect(x, y, largeur, 1, teintes[n % teintes.length])
+    }
+  }
 }
 
 interface PropsCarte {
@@ -185,6 +293,10 @@ interface PropsCarte {
   selection?: number | null
   /** Si fourni, les cases deviennent cliquables. */
   onCase?: (numCase: number) => void
+  /** Si fourni, la bouteille à la mer devient cliquable. */
+  onBouteille?: () => void
+  /** Heure (Date.now()) jusqu'à laquelle le club de jazz joue. */
+  concertJusqua?: number
 }
 
 /**
@@ -192,14 +304,15 @@ interface PropsCarte {
  * zone par case : c'est lui qui reçoit le doigt, le clavier et le lecteur d'écran.
  * Utilisé ici et sur l'accueil.
  */
-export function CarteIle({ etat, maintenant, selection, onCase }: PropsCarte) {
+export function CarteIle({ etat, maintenant, selection, onCase, onBouteille, concertJusqua = 0 }: PropsCarte) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const degagees = casesDegagees(etat, maintenant)
 
   // Redessine à chaque changement, et en continu pour les animations.
   useEffect(() => {
     const ctx = canvasRef.current!.getContext('2d')!
-    return animer((t) => dessinerIle(ctx, etat, degagees, selection, t, new Date(maintenant).getHours()))
+    const quand = new Date(maintenant)
+    return animer((t) => dessinerIle(ctx, etat, degagees, selection, t, quand, Date.now() < concertJusqua))
   })
 
   return (
@@ -235,6 +348,25 @@ export function CarteIle({ etat, maintenant, selection, onCase }: PropsCarte) {
             />
           )
         })}
+        {onBouteille && aDesRaisons(etat) && (
+          // Zone un peu plus grande que la bouteille, pour le doigt.
+          <rect
+            x={BOUTEILLE_X - 4}
+            y={BOUTEILLE_Y - 3}
+            width={BOUTEILLE[0].length + 8}
+            height={BOUTEILLE.length + 6}
+            fill="transparent"
+            role="button"
+            tabIndex={0}
+            aria-label="Bouteille à la mer : lire une de tes raisons"
+            onKeyDown={(e) => {
+              if (e.key !== 'Enter' && e.key !== ' ') return
+              e.preventDefault()
+              onBouteille()
+            }}
+            onClick={onBouteille}
+          />
+        )}
       </svg>
     </span>
   )
