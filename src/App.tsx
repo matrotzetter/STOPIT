@@ -2,6 +2,7 @@
 import { useState } from 'react'
 import { avatarsDe } from './avatar'
 import Accueil from './ecrans/Accueil'
+import Fond from './Fond'
 import Avatars from './ecrans/Avatars'
 import Envie from './ecrans/Envie'
 import Ile from './ecrans/Ile'
@@ -28,6 +29,7 @@ export type Ecran =
   | 'profil'
   | 'avatars'
 
+/** Garde les données, et affiche le décor commun (Fond) puis l'écran choisi par-dessus. */
 export default function App() {
   // « etat » contient toutes les données. null = premier lancement.
   const [etat, setEtat] = useState<Etat | null>(charger)
@@ -47,52 +49,67 @@ export default function App() {
     setEtat(nouvelEtat)
   }
 
-  if (!etat) return <PremierLancement onTermine={maj} />
+  return (
+    <>
+      {/* Sur l'accueil, la géante se lève en grand ; ailleurs elle reste discrète, sous le texte. */}
+      <Fond discret={!etat || ecran !== 'accueil'} />
+      {vue()}
+    </>
+  )
 
-  // Les mêmes informations sont transmises à tous les écrans.
-  const props = { etat, maj, aller: setEcran }
-  if (ecran === 'envie') return <Envie {...props} />
-  if (ecran === 'rechute') return <Rechute {...props} />
-  if (ecran === 'recompenses') return <Recompenses {...props} />
-  if (ecran === 'ile') return <Ile {...props} />
-  if (ecran === 'stats') return <Stats {...props} />
-  if (ecran === 'avatars') return <Avatars {...props} />
-  if (ecran === 'reglages') {
-    return (
-      <Reglages
-        {...props}
-        reinitialiser={() => {
-          effacer()
-          setEtat(null)
-          setEcran('accueil')
-        }}
-      />
-    )
+  /** L'écran à afficher. */
+  function vue() {
+    if (!etat) return <PremierLancement onTermine={maj} />
+
+    // Les mêmes informations sont transmises à tous les écrans.
+    const props = { etat, maj, aller: setEcran }
+    if (ecran === 'envie') return <Envie {...props} />
+    if (ecran === 'rechute') return <Rechute {...props} />
+    if (ecran === 'recompenses') return <Recompenses {...props} />
+    if (ecran === 'ile') return <Ile {...props} />
+    if (ecran === 'stats') return <Stats {...props} />
+    if (ecran === 'avatars') return <Avatars {...props} />
+    if (ecran === 'reglages') {
+      return (
+        <Reglages
+          {...props}
+          reinitialiser={() => {
+            effacer()
+            setEtat(null)
+            setEcran('accueil')
+          }}
+        />
+      )
+    }
+    if (ecran === 'profil') {
+      // Le formulaire du premier lancement sert aussi à modifier ses données.
+      return (
+        <PremierLancement
+          existant={etat}
+          onTermine={(modifie) => {
+            maj(modifie)
+            setEcran('reglages')
+          }}
+          onAnnuler={() => setEcran('reglages')}
+        />
+      )
+    }
+    if (ecran === 'entrainement') {
+      return (
+        <main className="centre">
+          <h1>Entraînement</h1>
+          <p className="discret">Pour le plaisir : ici, jouer ne rapporte ni énergie ni cristaux.</p>
+          <MiniJeu
+            avatars={avatarsDe(etat)}
+            record={etat.recordPuzzle ?? 0}
+            onRecord={(score) => maj({ ...etat, recordPuzzle: score })}
+          />
+          <button className="secondaire" onClick={() => setEcran('ile')}>
+            Retour
+          </button>
+        </main>
+      )
+    }
+    return <Accueil {...props} />
   }
-  if (ecran === 'profil') {
-    // Le formulaire du premier lancement sert aussi à modifier ses données.
-    return (
-      <PremierLancement
-        existant={etat}
-        onTermine={(modifie) => {
-          maj(modifie)
-          setEcran('reglages')
-        }}
-        onAnnuler={() => setEcran('reglages')}
-      />
-    )
-  }
-  if (ecran === 'entrainement') {
-    return (
-      <main className="centre">
-        <h1>Entraînement</h1>
-        <p className="discret">Pour le plaisir : ici, jouer ne rapporte ni énergie ni cristaux.</p>
-        <MiniJeu avatars={avatarsDe(etat)} record={etat.recordPuzzle ?? 0} onRecord={(score) => maj({ ...etat, recordPuzzle: score })} />
-        <button className="secondaire" onClick={() => setEcran('ile')}>
-          Retour
-        </button>
-      </main>
-    )
-  }
-  return <Accueil {...props} />
 }

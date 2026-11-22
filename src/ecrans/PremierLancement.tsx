@@ -1,5 +1,7 @@
 // Premier lancement : un formulaire qui recueille le produit, la consommation,
 // la date d'arrêt, les raisons et les premières récompenses.
+import { nouvelId } from '../stockage'
+import { VERSION_CARTE } from '../logique/ile'
 import { useState, type FormEvent } from 'react'
 import { PALIERS_JOURS } from '../config'
 import { NOM_UNITE } from '../format'
@@ -70,7 +72,7 @@ export default function PremierLancement({ onTermine, existant, onAnnuler }: Pro
       version: 1,
       profil,
       recompenses: recompenses.map((r) => ({
-        id: crypto.randomUUID(),
+        id: nouvelId(),
         nom: r.nom.trim(),
         prix: Number(r.prix),
         palierJours: Number(r.palier),
@@ -79,6 +81,7 @@ export default function PremierLancement({ onTermine, existant, onAnnuler }: Pro
       envies: [],
       checkins: [],
       batiments: [],
+      carte: VERSION_CARTE,
     })
   }
 

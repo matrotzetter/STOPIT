@@ -1,6 +1,7 @@
-// Écran d'accueil : l'île en grand, temps écoulé, cagnotte, prochaine récompense,
-// check-in quotidien et bouton « J'ai une envie ».
+// Écran d'accueil : la série en cours, l'île en grand, la cagnotte, la prochaine
+// récompense, la question du jour et le bouton « J'ai une envie ».
 import type { Ecran } from '../App'
+import Icone from '../Icone'
 import { NOM_UNITE, chf, duree, dureeCourte, texteManque } from '../format'
 import {
   cagnotte,
@@ -11,11 +12,12 @@ import {
   soldeCagnotte,
   tempsCumuleMs,
   unitesNonConsommees,
+  JOUR_MS,
 } from '../logique/calculs'
 import { energie, soldeCristaux } from '../logique/ile'
 import type { Etat } from '../logique/types'
-import { CarteIle } from './CarteIle'
 import { useMaintenant } from '../useMaintenant'
+import { CarteIle } from './CarteIle'
 
 interface Props {
   etat: Etat
@@ -23,18 +25,10 @@ interface Props {
   aller: (ecran: Ecran) => void
 }
 
-/** Un petit mot d'accueil selon l'heure. */
-function salutation(maintenant: number): string {
-  const heure = new Date(maintenant).getHours()
-  if (heure < 6) return 'Bonne nuit 🌙'
-  if (heure < 12) return 'Bonjour ☀️'
-  if (heure < 18) return 'Bon après-midi 🌤️'
-  return 'Bonsoir 🕯️'
-}
-
 export default function Accueil({ etat, maj, aller }: Props) {
   const maintenant = useMaintenant()
   const pasEncoreArrete = maintenant < etat.profil.dateArret
+  const serie = serieMs(etat, maintenant)
   /** Ce qui manque pour que la cagnotte repasse au-dessus de zéro (0 s'il n'y a pas de retard). */
   const retard = Math.max(0, -soldeCagnotte(etat, maintenant))
   const prochaine = prochaineRecompense(etat, maintenant)
@@ -44,117 +38,100 @@ export default function Accueil({ etat, maj, aller }: Props) {
 
   return (
     <main className="avec-bouton-fixe">
-      {/* Une guirlande lumineuse en haut de la page. */}
-      <svg className="guirlande" viewBox="0 0 100 12" aria-hidden="true">
-        <path d="M0,2 Q50,14 100,2" />
-        {[...Array(11).keys()].map((n) => {
-          const p = (n + 0.5) / 11 // position le long du fil, de 0 à 1
-          return <rect key={n} className="etoile" x={p * 100 - 1.2} y={0.8 + 2 * p * (1 - p) * 12} width={2.4} height={2.4} style={{ animationDelay: `${n * 0.35}s` }} />
-        })}
-      </svg>
-      <h1>Cagnotte</h1>
-      <p className="discret">{salutation(maintenant)}</p>
+      <header className="entete">
+        <div>
+          <p className="label">{pasEncoreArrete ? 'Arrêt dans' : 'Sans nicotine depuis'}</p>
+          {pasEncoreArrete ? (
+            <p className="grand petit">{duree(etat.profil.dateArret - maintenant, true)}</p>
+          ) : (
+            // Le compteur repart de zéro à chaque rechute ; le temps total reste juste en dessous.
+            <p className="grand">
+              {Math.floor(serie / JOUR_MS)} j <span className="leger">{Math.floor((serie % JOUR_MS) / 3600000)} h</span>
+            </p>
+          )}
+          {!pasEncoreArrete && (
+            <p className="discret">
+              Record {dureeCourte(meilleureSerieMs(etat, maintenant))} · {dureeCourte(tempsCumuleMs(etat, maintenant))} au total
+            </p>
+          )}
+        </div>
+        <nav className="actions">
+          <button className="icone-seule" aria-label="Statistiques" onClick={() => aller('stats')}>
+            <Icone nom="stats" />
+          </button>
+          <button className="icone-seule" aria-label="Réglages" onClick={() => aller('reglages')}>
+            <Icone nom="reglages" />
+          </button>
+        </nav>
+      </header>
 
-      {/* L'île est le cœur de la page : un tap l'ouvre pour construire. */}
+      {/* L'île est le cœur de la page : la toucher ouvre l'écran Île, pour construire. */}
       <button className="ile-accueil" onClick={() => aller('ile')}>
-        <CarteIle etat={etat} maintenant={maintenant} />
-        <span>
+        <CarteIle etat={etat} maintenant={maintenant} ilot={false} />
+        <span className="discret">
           Mon île · ⚡ {Math.floor(energie(etat, maintenant))} · 💎 {soldeCristaux(etat, maintenant)}
         </span>
       </button>
 
-      {pasEncoreArrete ? (
-        <section className="carte centre">
-          <p className="discret">Arrêt dans</p>
-          <p className="grand">{duree(etat.profil.dateArret - maintenant, true)}</p>
-        </section>
-      ) : (
-        <section className="carte centre">
-          {/* Le grand compteur repart de zéro à chaque rechute ; le temps total reste dans la tuile « Au total ». */}
-          <p className="discret">Sans nicotine depuis</p>
-          <p className="grand">{duree(serieMs(etat, maintenant), true)}</p>
-        </section>
-      )}
-
-      {/* La question du jour, juste sous le compteur : c'est le geste quotidien. */}
-      {!pasEncoreArrete && (
-        <section className="carte">
-          {rechuteAujourdhui || checkinFait ? (
-            <>
-              <p>{rechuteAujourdhui ? "Rechute notée aujourd'hui. Tu repars de là." : "✅ Check-in fait aujourd'hui"}</p>
-              {/* La journée n'est pas finie : on peut encore noter une rechute (ou une de plus). */}
-              <button className="secondaire" onClick={() => aller('rechute')}>
-                J'en ai pris une
-              </button>
-            </>
-          ) : (
-            <>
-              <p>Toujours sans nicotine aujourd'hui ?</p>
-              <div className="rangee">
-                <button onClick={() => maj({ ...etat, checkins: [...etat.checkins, aujourdhui] })}>Oui</button>
-                <button className="secondaire" onClick={() => aller('rechute')}>
-                  Non
-                </button>
-              </div>
-            </>
-          )}
-        </section>
-      )}
-
       <section className="tuiles">
         <div className="carte">
-          <span className="icone" aria-hidden="true">💰</span>
-          <p className="discret">Cagnotte</p>
+          <p className="label">Cagnotte</p>
           <p className="valeur or">{chf(cagnotte(etat, maintenant))}</p>
           {/* Après une rechute plus chère que la cagnotte : on dit combien il reste à rattraper. */}
           {retard > 0 && <p className="discret">{chf(retard)} à rattraper</p>}
         </div>
         <div className="carte">
-          <span className="icone" aria-hidden="true">🚭</span>
-          <p className="discret">Évité</p>
+          <p className="label">Évité</p>
           <p className="valeur">
-            {Math.floor(unitesNonConsommees(etat, maintenant))} {NOM_UNITE[etat.profil.produit]}
+            {Math.floor(unitesNonConsommees(etat, maintenant))} <span className="unite">{NOM_UNITE[etat.profil.produit]}</span>
           </p>
         </div>
-        <div className="carte">
-          <span className="icone" aria-hidden="true">📅</span>
-          <p className="discret">Au total</p>
-          <p className="valeur">{dureeCourte(tempsCumuleMs(etat, maintenant))}</p>
-        </div>
-        <div className="carte">
-          <span className="icone" aria-hidden="true">🏅</span>
-          <p className="discret">Record</p>
-          <p className="valeur">{dureeCourte(meilleureSerieMs(etat, maintenant))}</p>
-        </div>
+        {prochaine ? (
+          // Toute la carte est un bouton : elle ouvre la liste des récompenses.
+          <button className="carte large" onClick={() => aller('recompenses')}>
+            <span className="ligne-titre">
+              <span className="label">Prochaine récompense</span>
+              <span className="discret">{Math.floor(prochaine.progression * 100)} %</span>
+            </span>
+            <span className="nom-recompense">
+              {prochaine.recompense.nom} · {chf(prochaine.recompense.prix)}
+            </span>
+            <progress value={prochaine.progression} max={1} aria-label="Progression vers la récompense" />
+            <span className="discret">
+              {prochaine.progression >= 1 ? 'Débloquée !' : texteManque(prochaine.joursManquants, prochaine.chfManquants)}
+            </span>
+          </button>
+        ) : (
+          <button className="secondaire large" onClick={() => aller('recompenses')}>
+            <Icone nom="cadeau" /> Mes récompenses
+          </button>
+        )}
       </section>
 
-      {prochaine && (
-        <section className="carte">
-          <p className="discret">Prochaine récompense</p>
-          <p className="valeur">
-            {prochaine.recompense.nom} · {chf(prochaine.recompense.prix)}
-          </p>
-          <progress value={prochaine.progression} max={1} aria-label="Progression vers la récompense" />
-          <p className="discret">
-            {prochaine.progression >= 1
-              ? 'Débloquée !'
-              : texteManque(prochaine.joursManquants, prochaine.chfManquants)}
-          </p>
+      {/* La question du jour : c'est le geste quotidien. */}
+      {!pasEncoreArrete && (
+        <section className="carte question">
+          {rechuteAujourdhui || checkinFait ? (
+            <>
+              <span>{rechuteAujourdhui ? 'Rechute notée. Tu repars de là.' : "✓ Check-in fait aujourd'hui"}</span>
+              {/* La journée n'est pas finie : on peut encore noter une rechute (ou une de plus). */}
+              <button className="secondaire petit" onClick={() => aller('rechute')}>
+                J'en ai pris une
+              </button>
+            </>
+          ) : (
+            <>
+              <span>Sans nicotine aujourd'hui&nbsp;?</span>
+              <button className="petit oui" onClick={() => maj({ ...etat, checkins: [...etat.checkins, aujourdhui] })}>
+                Oui
+              </button>
+              <button className="secondaire petit" onClick={() => aller('rechute')}>
+                Non
+              </button>
+            </>
+          )}
         </section>
       )}
-
-      <button className="secondaire espace" onClick={() => aller('recompenses')}>
-        🎁 Mes récompenses
-      </button>
-
-      <div className="rangee">
-        <button className="secondaire" onClick={() => aller('stats')}>
-          📊 Statistiques
-        </button>
-        <button className="secondaire" onClick={() => aller('reglages')}>
-          ⚙️ Réglages
-        </button>
-      </div>
 
       {/* Bouton fixé en bas de l'écran : atteignable du pouce, sans défiler. */}
       <button className="bouton-envie" onClick={() => aller('envie')}>

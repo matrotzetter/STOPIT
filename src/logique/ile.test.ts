@@ -2,6 +2,7 @@
 import { describe, expect, it } from 'vitest'
 import { JOUR_MS as J } from './calculs'
 import {
+  EST_EAU,
   ZONE_DE_CASE,
   ameliorer,
   casesDegagees,
@@ -12,6 +13,7 @@ import {
   refusAmelioration,
   refusConstruction,
   refusDeconstruction,
+  migrerCarte,
   modele,
   soldeCristaux,
 } from './ile'
@@ -35,9 +37,13 @@ function degageesDansZone(etat: Etat, maintenant: number, zone: number): number 
 }
 
 describe('brume', () => {
-  it('la carte contient 64 cases réparties en 6 zones', () => {
-    expect(ZONE_DE_CASE).toHaveLength(64)
-    expect(new Set(ZONE_DE_CASE).size).toBe(6)
+  it('la carte contient 100 cases : 83 de terre en 6 zones, dont 6 d’eau', () => {
+    expect(ZONE_DE_CASE).toHaveLength(100)
+    expect(ZONE_DE_CASE.filter((z) => z >= 0)).toHaveLength(83)
+    expect(new Set(ZONE_DE_CASE.filter((z) => z >= 0)).size).toBe(6)
+    expect(EST_EAU.filter(Boolean)).toHaveLength(6)
+    // L'eau est toujours sur de la terre.
+    EST_EAU.forEach((eau, i) => eau && expect(ZONE_DE_CASE[i]).toBeGreaterThanOrEqual(0))
   })
 
   it('tout est sous la brume avant le premier palier (3 jours)', () => {
@@ -45,10 +51,10 @@ describe('brume', () => {
   })
 
   it('une zone ouverte se dégage case par case en 3 jours', () => {
-    // La zone 0 (8 cases) s'ouvre au jour 3.
+    // La zone 0 (15 cases) s'ouvre au jour 3.
     expect(degageesDansZone(base, t0 + 3 * J, 0)).toBe(0)
-    expect(degageesDansZone(base, t0 + 4 * J, 0)).toBe(2)
-    expect(degageesDansZone(base, t0 + 6 * J, 0)).toBe(8)
+    expect(degageesDansZone(base, t0 + 4 * J, 0)).toBe(5)
+    expect(degageesDansZone(base, t0 + 6 * J, 0)).toBe(15)
     // La zone 1 ne s'ouvre qu'au jour 7.
     expect(degageesDansZone(base, t0 + 6.9 * J, 1)).toBe(0)
   })
@@ -61,23 +67,23 @@ describe('brume', () => {
   })
 
   it('une rechute recouvre la dernière zone ouverte, qui se redégage en 3 jours', () => {
-    // Jour 8 : les zones 0 et 1 sont ouvertes ; la zone 1 (10 cases) est la dernière.
+    // Jour 8 : les zones 0 et 1 sont ouvertes ; la zone 1 (16 cases) est la dernière.
     const etat: Etat = { ...base, rechutes: [{ date: t0 + 8 * J, unites: 1 }] }
-    expect(degageesDansZone(base, t0 + 8 * J, 1)).toBe(3) // sans rechute
+    expect(degageesDansZone(base, t0 + 8 * J, 1)).toBe(5) // sans rechute
     expect(degageesDansZone(etat, t0 + 8 * J, 1)).toBe(0) // recouverte
-    expect(degageesDansZone(etat, t0 + 8 * J, 0)).toBe(8) // les autres zones ne bougent pas
-    expect(degageesDansZone(etat, t0 + 11 * J, 1)).toBe(10) // redégagée 3 jours plus tard
+    expect(degageesDansZone(etat, t0 + 8 * J, 0)).toBe(15) // les autres zones ne bougent pas
+    expect(degageesDansZone(etat, t0 + 11 * J, 1)).toBe(16) // redégagée 3 jours plus tard
   })
 
   it('une rechute avant toute ouverture de zone ne change rien à l’île', () => {
     const etat: Etat = { ...base, rechutes: [{ date: t0 + 1 * J, unites: 1 }] }
-    expect(degageesDansZone(etat, t0 + 6 * J, 0)).toBe(8)
+    expect(degageesDansZone(etat, t0 + 6 * J, 0)).toBe(15)
   })
 })
 
 describe('énergie et bâtiments', () => {
   const jour4 = t0 + 4 * J
-  const caseDegagee = 62 // première case dégagée de la zone 0
+  const caseDegagee = 97 // première case dégagée de la zone 0
   const caseBrume = 0
 
   it('l’énergie vaut 10 par heure sans nicotine', () => {
@@ -92,7 +98,9 @@ describe('énergie et bâtiments', () => {
   })
 
   it('on ne construit ni dans la brume, ni sur une case occupée, ni hors zone, ni sans énergie', () => {
-    expect(refusConstruction(base, caseBrume, 'cabane', jour4)).toMatch(/brume/)
+    expect(refusConstruction(base, caseBrume, 'cabane', jour4)).toMatch(/terre/) // case 0 : hors de l'île
+    expect(refusConstruction(base, 2, 'cabane', jour4)).toMatch(/brume/)
+    expect(refusConstruction(base, 91, 'cabane', t0 + 30 * J)).toMatch(/eau/)
     const occupee = construire(base, caseDegagee, 'cabane', jour4)
     expect(refusConstruction(occupee, caseDegagee, 'feu', jour4)).toMatch(/occupée/)
     expect(refusConstruction(base, caseDegagee, 'phare', jour4)).toMatch(/zone 4/)
@@ -100,8 +108,8 @@ describe('énergie et bâtiments', () => {
     const fauche: Etat = {
       ...base,
       batiments: [
-        { case: 61, type: 'cabane', niveau: 3 },
-        { case: 60, type: 'feu', niveau: 3 },
+        { case: 96, type: 'cabane', niveau: 3 },
+        { case: 95, type: 'feu', niveau: 3 },
       ],
     }
     expect(energie(fauche, jour4)).toBe(0)
@@ -139,7 +147,7 @@ describe('énergie et bâtiments', () => {
 
 describe('déconstruire', () => {
   const jour4 = t0 + 4 * J
-  const caseDegagee = 62
+  const caseDegagee = 97
 
   it('rend tout ce que le bâtiment avait coûté, améliorations comprises', () => {
     const niveau2 = ameliorer(construire(base, caseDegagee, 'cabane', jour4), caseDegagee, jour4)
@@ -157,5 +165,31 @@ describe('déconstruire', () => {
     const cache: Etat = { ...construire(base, caseDegagee, 'cabane', jour4), rechutes: [{ date: jour4, unites: 1 }] }
     expect(refusDeconstruction(cache, caseDegagee, jour4)).toMatch(/brume/)
     expect(deconstruire(cache, caseDegagee, jour4)).toBe(cache)
+  })
+})
+
+describe('passage à la carte 10 × 10', () => {
+  it('garde la place de chaque bâtiment par rapport à la côte', () => {
+    const ancien: Etat = { ...base, batiments: [{ case: 62, type: 'cabane', niveau: 2 }] }
+    expect(migrerCarte(ancien).batiments).toEqual([{ case: 97, type: 'cabane', niveau: 2 }])
+  })
+
+  it('déplace sur la case libre la plus proche un bâtiment tombé sur l’eau ou hors de l’île', () => {
+    // Ancienne case 56 (ligne 7, colonne 0) → case 91, qui est de l'eau.
+    // Ancienne case 63 (ligne 7, colonne 7) → case 98, qui est hors de l'île.
+    const ancien: Etat = {
+      ...base,
+      batiments: [
+        { case: 56, type: 'feu', niveau: 1 },
+        { case: 63, type: 'arbre', niveau: 1 },
+      ],
+    }
+    const cases = migrerCarte(ancien).batiments.map((b) => b.case)
+    expect(cases).toEqual([92, 88]) // 88 et 97 sont à égale distance de 98 : la plus petite gagne
+  })
+
+  it('ne touche pas des données déjà à la nouvelle carte', () => {
+    const recent: Etat = { ...base, carte: 2, batiments: [{ case: 62, type: 'cabane', niveau: 1 }] }
+    expect(migrerCarte(recent)).toBe(recent)
   })
 })

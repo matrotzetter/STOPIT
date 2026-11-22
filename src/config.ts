@@ -17,19 +17,32 @@ export const DECLENCHEURS = ['Stress', 'Café', 'Soirée', 'Ennui', 'Après un r
 // ---------- L'île ----------
 
 /**
- * Carte de l'île : 8 lignes de 8 cases, le nord en haut.
- * Chaque chiffre est le numéro de zone de la case (0 = première zone, sur la côte).
+ * Carte de l'île : 10 lignes de 10 cases, le nord en haut (l'avant de l'île est en bas).
+ * Chaque chiffre est le numéro de zone de la case (0 = première zone, sur la côte) ;
+ * « . » = pas de terre (c'est ce qui donne à l'île sa forme irrégulière).
  * La zone n° i s'ouvre au palier PALIERS_JOURS[i] de jours cumulés.
  */
 export const CARTE = [
-  '55555555',
-  '55444455',
-  '44433444',
-  '43333334',
-  '22311322',
-  '22111122',
-  '21100112',
-  '20000002',
+  '..555555..',
+  '..5554555.',
+  '.444444444',
+  '4443333444',
+  '4333333334',
+  '.22222233.',
+  '2211111111',
+  '.11111111.',
+  '.00000000.',
+  '.0000000..',
+]
+
+/**
+ * Les deux sources de l'île, en [ligne, colonne] : un bassin, puis un ruisseau
+ * jusqu'au bord, d'où l'eau tombe en cascade dans le vide. On ne construit pas sur l'eau.
+ * « chute » : le côté d'où tombe la cascade (face avant gauche ou avant droite de la dernière case).
+ */
+export const SOURCES: { cases: [number, number][]; chute: 'gauche' | 'droite' }[] = [
+  { cases: [[7, 1], [8, 1], [9, 1]], chute: 'gauche' },
+  { cases: [[5, 8], [6, 8], [6, 9]], chute: 'droite' },
 ]
 
 /** Énergie produite par heure sans nicotine. */

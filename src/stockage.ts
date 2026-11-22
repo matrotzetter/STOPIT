@@ -1,6 +1,7 @@
 // Enregistrement des données sur l'appareil, dans le « localStorage » du
 // navigateur : un petit espace de stockage propre à ce site, sans serveur.
 
+import { migrerCarte } from './logique/ile'
 import type { Etat } from './logique/types'
 
 const CLE = 'cagnotte-etat'
@@ -31,7 +32,8 @@ export function lireEtat(texte: string): Etat | null {
     }
     // shortcut: le contenu de chaque liste n'est pas vérifié élément par élément ;
     // à renforcer si l'on importe un jour des fichiers venant d'ailleurs que de l'export de l'app.
-    return { version: 1, recompenses: [], rechutes: [], envies: [], checkins: [], batiments: [], ...donnees }
+    // Les données d'une ancienne version (carte 8 × 8) sont mises à jour au passage.
+    return migrerCarte({ version: 1, recompenses: [], rechutes: [], envies: [], checkins: [], batiments: [], ...donnees })
   } catch {
     return null
   }
@@ -41,7 +43,10 @@ export function lireEtat(texte: string): Etat | null {
 export function charger(): Etat | null {
   try {
     const texte = localStorage.getItem(CLE)
-    return texte ? lireEtat(texte) : null
+    const etat = texte ? lireEtat(texte) : null
+    // Données d'une ancienne version, mises à jour par lireEtat : on enregistre tout de suite la version à jour.
+    if (etat && JSON.parse(texte!).carte !== etat.carte) sauvegarder(etat)
+    return etat
   } catch {
     // Stockage indisponible : on repart du premier lancement.
     return null
@@ -76,4 +81,12 @@ export function exporter(etat: Etat): void {
   lien.download = `cagnotte-${new Date().toLocaleDateString('sv')}.json`
   lien.click()
   URL.revokeObjectURL(lien.href)
+}
+
+/**
+ * Un identifiant unique pour une nouvelle récompense. crypto.randomUUID n'existe que sur une
+ * page sécurisée (https ou localhost) : en test sur le Wi-Fi (http), on en fabrique un autrement.
+ */
+export function nouvelId(): string {
+  return globalThis.crypto?.randomUUID?.() ?? `${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`
 }

@@ -57,7 +57,7 @@ export const NUAGE = ['...nnnn.....', '.nnnnnnnn...', 'nnnnnnnnnnn.', 'nnnnnnnnn
 /** La flèche ronde affichée quand la partie recommence. */
 export const FLECHE = ['..ccc.c', '.c...cc', 'c...ccc', 'c......', 'c.....c', '.c...c.', '..ccc..']
 
-/** Les moments de la journée, pour la couleur du ciel de l'île. */
+/** Les moments de la journée : les mouettes volent le jour, les lucioles brillent le soir et la nuit. */
 export type Periode = 'nuit' | 'aube' | 'jour' | 'soir'
 
 /** Le moment de la journée à une heure donnée (de 0 à 23). */
@@ -66,14 +66,6 @@ export function periode(heure: number): Periode {
   if (heure < 8) return 'aube'
   if (heure < 17) return 'jour'
   return 'soir'
-}
-
-/** Couleurs du ciel, de haut en bas, jusqu'à la mer (les deux dernières bandes). */
-export const CIELS: Record<Periode, string[]> = {
-  nuit: ['#2a2052', '#2b2a5e', '#2a3868', '#274a73', '#23597f', '#1f6f8f'],
-  aube: ['#4a3a78', '#8a5a92', '#d27a8c', '#f4a97c', '#4f93ad', '#3f84a0'],
-  jour: ['#4a9ede', '#62b0e6', '#7fc2ee', '#a3d6f4', '#3d9cc6', '#2f8cb8'],
-  soir: ['#2f2a6b', '#5b3a86', '#a8508a', '#e8785f', '#3a6f95', '#2f6088'],
 }
 
 /**
@@ -120,9 +112,6 @@ export const BATIMENTS: Record<string, string[]> = {
 
 // ---------- La vie sur l'île ----------
 
-/** Un voilier, qui passe au large de temps en temps. */
-export const BATEAU = ['....r....', '....ee...', '....eee..', '....eeee.', '....T....', 'ttttttttt', '.TTTTTTT.']
-
 /** Une mouette, ailes levées puis ailes à plat. */
 export const MOUETTE = [
   ['e...e', '.e.e.'],
@@ -135,7 +124,7 @@ export const MOUTON = [
   ['.eee.', 'eeeex', 'eeee.', 'x..x.'],
 ]
 
-/** Une bouteille échouée sur la plage, un message roulé à l'intérieur. */
+/** Une bouteille posée sur l'îlot, un message roulé à l'intérieur. */
 export const BOUTEILLE = ['...LLLLL', 'TllLeeeL', '...LLLLL']
 
 /** Une croche, qui monte du club de jazz pendant le concert. */
@@ -158,12 +147,14 @@ export function saison(date: Date): Saison {
 }
 
 export interface Habillage {
-  /** Couleur du sol de chaque zone, de la plage (zone 1) au sommet (zone 6). */
+  /** Couleur du sol de chaque zone, de la côte (zone 1) au sommet (zone 6). */
   zones: string[]
   /** Couleurs des motifs remplacées pour la saison (feuillage surtout). */
   motifs: Record<string, string>
   /** Ce qui tombe du ciel : nombre de particules et leurs couleurs. */
   chute: { nombre: number; couleurs: string[]; largeur: number }
+  /** La mousse qui déborde sous le bord de l'île : couleur claire, puis plus sombre. */
+  mousse: [string, string]
 }
 
 /** L'habillage de l'île à chaque saison. */
@@ -172,20 +163,49 @@ export const SAISONS: Record<Saison, Habillage> = {
     zones: ['#d9c58a', '#b4d26e', '#8fc46a', '#68ab64', '#8f9e8a', '#dfe6ea'],
     motifs: { v: '#7cc860', V: '#4f9a48' },
     chute: { nombre: 8, couleurs: ['#f6b8d0', '#fbe0ea'], largeur: 1 }, // pétales
+    mousse: ['#5f9e50', '#447a3c'],
   },
   ete: {
     zones: ['#d9c58a', '#a9c46c', '#7fb069', '#5a9a5f', '#8d9a8a', '#c9d3da'],
     motifs: {},
     chute: { nombre: 0, couleurs: [], largeur: 1 },
+    mousse: ['#4f8a46', '#3d6e38'],
   },
   automne: {
     zones: ['#d9c58a', '#bfb062', '#a99a52', '#8c7d4a', '#8d8a7a', '#c9d3da'],
     motifs: { v: '#e0833a', V: '#b8532e' },
     chute: { nombre: 9, couleurs: ['#e0833a', '#c9562e', '#f2b04a'], largeur: 2 }, // feuilles
+    mousse: ['#7d8a3e', '#5e6a2e'],
   },
   hiver: {
     zones: ['#e4dcc4', '#c4d2c6', '#aebfb2', '#a3b5ac', '#e8eef2', '#ffffff'],
     motifs: { v: '#4f7f62', V: '#3a6650' },
     chute: { nombre: 16, couleurs: ['#ffffff', '#e6eef5'], largeur: 1 }, // flocons
+    mousse: ['#eef3f6', '#b8c6cc'],
   },
+}
+
+// ---------- Le rocher sous l'île ----------
+
+/** Couleurs du rocher : face éclairée (gauche) et face à l'ombre (droite), du haut vers la pointe. */
+export const ROCHE = {
+  eclairee: ['#a8805c', '#97724f', '#856345', '#72543a', '#5e4430'],
+  ombre: ['#7a5c42', '#694e37', '#58412e', '#493526', '#3b2a1e'],
+  bord: '#2a1d15',
+}
+
+/**
+ * Un tirage « au hasard » qui donne toujours la même suite pour la même graine :
+ * le rocher garde ainsi la même forme à chaque ouverture de l'app.
+ * Renvoie une fonction qui donne un nombre entre 0 et 1 à chaque appel.
+ */
+export function hasard(graine: number): () => number {
+  let etat = graine
+  return () => {
+    // Petite formule classique (« mulberry32 ») qui mélange bien les bits.
+    etat = (etat + 0x6d2b79f5) | 0
+    let x = Math.imul(etat ^ (etat >>> 15), 1 | etat)
+    x = (x + Math.imul(x ^ (x >>> 7), 61 | x)) ^ x
+    return ((x ^ (x >>> 14)) >>> 0) / 4294967296
+  }
 }

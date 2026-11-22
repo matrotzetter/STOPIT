@@ -82,4 +82,6 @@ export interface Etat {
   sons?: boolean
   /** Les deux personnages du mini-jeu. Absent = ceux par défaut (AVATARS_DEFAUT). */
   avatars?: Avatar[]
+  /** Version de la carte de l'île (2 = carte 10 × 10). Absent = ancienne carte 8 × 8, voir migrerCarte. */
+  carte?: number
 }

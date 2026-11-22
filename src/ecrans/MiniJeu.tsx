@@ -1,5 +1,5 @@
 // Le mini-jeu : on fait glisser des blocs sur un plateau en bois pour compléter
-// des lignes, au coin du feu. Dessiné en « pixel art » dans un <canvas>.
+// des lignes, au coin du feu, sous les étoiles. Dessiné en « pixel art » dans un <canvas>.
 // Les règles sont dans logique/puzzle.ts ; ici il n'y a que le dessin et le doigt.
 //
 // Tout est mesuré en « gros pixels » : le dessin est fait en tout petit (environ
@@ -117,8 +117,12 @@ export default function MiniJeu({ record, onRecord, avatars }: Props) {
       }
     }
 
-    // 1. Le décor : une pièce sombre, la lueur du feu, une guirlande, les deux avatars
-    rect(0, 0, largeur, hauteurTotale(), '#241b17')
+    // 1. Le décor : la nuit étoilée, la lueur du feu, une guirlande, les deux avatars
+    rect(0, 0, largeur, hauteurTotale(), '#121233')
+    for (let n = 0; n < 14; n++) {
+      // Des étoiles toujours aux mêmes endroits, qui scintillent doucement.
+      if (Math.sin(t / 900 + n * 2) > -0.5) rect((n * 37 + 11) % largeur, 3 + ((n * 23) % (HAUT_SCENE - 8)), 1, 1, '#d8d4f0')
+    }
     const sol = HAUT_SCENE - 2
     for (let n = 0; n < 4; n++) {
       // La lueur : des rectangles de plus en plus petits, empilés autour du feu.
@@ -189,7 +193,7 @@ export default function MiniJeu({ record, onRecord, avatars }: Props) {
 
     // 6. Partie finie : voile sombre sur le plateau et flèche « on recommence »
     if (jeu.bloquee) {
-      rect(0, HAUT_SCENE, largeur, basPlateau() - HAUT_SCENE + 3, 'rgba(36, 27, 23, 0.8)')
+      rect(0, HAUT_SCENE, largeur, basPlateau() - HAUT_SCENE + 3, 'rgba(14, 16, 38, 0.8)')
       ctx.save()
       ctx.translate(milieu - 10, Math.round((HAUT_SCENE + basPlateau()) / 2) - 10)
       ctx.scale(3, 3) // la petite flèche est dessinée trois fois plus grosse

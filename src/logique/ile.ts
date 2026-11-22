@@ -11,6 +11,7 @@ import {
   JOURS_DEGAGEMENT,
   NIVEAU_MAX,
   PALIERS_JOURS,
+  SOURCES,
   type ModeleBatiment,
 } from '../config'
 import { JOUR_MS, cristaux, tempsCumuleMs } from './calculs'
@@ -19,8 +20,21 @@ import type { Etat } from './types'
 /** Nombre de cases par côté. */
 export const TAILLE = CARTE.length
 
-/** Zone de chaque case. La case n° i est à la ligne i ÷ TAILLE, colonne i modulo TAILLE. */
-export const ZONE_DE_CASE: number[] = CARTE.flatMap((ligne) => [...ligne].map(Number))
+/**
+ * Zone de chaque case. La case n° i est à la ligne i ÷ TAILLE, colonne i modulo TAILLE.
+ * -1 = pas de terre à cet endroit (case « . » de la carte).
+ */
+export const ZONE_DE_CASE: number[] = CARTE.flatMap((ligne) => [...ligne].map((c) => (c === '.' ? -1 : Number(c))))
+
+/** Numéro de la case à la ligne et à la colonne données. */
+export const numeroCase = (ligne: number, colonne: number) => ligne * TAILLE + colonne
+
+/** true pour les cases d'eau (bassins et ruisseaux des SOURCES). */
+export const EST_EAU: boolean[] = ZONE_DE_CASE.map(() => false)
+for (const source of SOURCES) for (const [l, c] of source.cases) EST_EAU[numeroCase(l, c)] = true
+
+/** true si l'on peut construire sur cette case une fois la brume levée : de la terre, pas d'eau. */
+export const estConstructible = (i: number) => ZONE_DE_CASE[i] >= 0 && !EST_EAU[i]
 
 /** Cases d'une zone, dans l'ordre où la brume se lève : de la côte (en bas) vers le sommet. */
 function casesDeZone(zone: number): number[] {
@@ -123,6 +137,8 @@ export function soldeCristaux(etat: Etat, maintenant: number): number {
 export function refusConstruction(etat: Etat, numCase: number, type: string, maintenant: number): string | null {
   const m = modele(type)
   if (!m) return 'Bâtiment inconnu'
+  if (ZONE_DE_CASE[numCase] < 0) return 'Pas de terre ici'
+  if (EST_EAU[numCase]) return 'On ne construit pas sur l’eau'
   if (!casesDegagees(etat, maintenant)[numCase]) return 'Case encore dans la brume'
   if (etat.batiments.some((b) => b.case === numCase)) return 'Case déjà occupée'
   if (ZONE_DE_CASE[numCase] < m.zoneMin) return `Réservé à la zone ${m.zoneMin + 1} et au-delà`
@@ -175,4 +191,37 @@ export function refusDeconstruction(etat: Etat, numCase: number, maintenant: num
 export function deconstruire(etat: Etat, numCase: number, maintenant: number): Etat {
   if (refusDeconstruction(etat, numCase, maintenant)) return etat
   return { ...etat, batiments: etat.batiments.filter((b) => b.case !== numCase) }
+}
+
+// ---------- Passage à la carte 10 × 10 ----------
+
+/** Version de la carte. Les données sans `carte` datent de l'ancienne carte 8 × 8. */
+export const VERSION_CARTE = 2
+
+/**
+ * Replace les bâtiments enregistrés sur l'ancienne carte 8 × 8 sur la carte 10 × 10.
+ * L'ancienne carte occupe les lignes 2 à 9 et les colonnes 1 à 8 de la nouvelle : chaque
+ * bâtiment garde sa place par rapport à la côte. S'il tombe sur l'eau, hors de l'île ou
+ * sur une case déjà prise, il va sur la case constructible libre la plus proche.
+ * Les données déjà à la nouvelle version sont renvoyées telles quelles.
+ */
+export function migrerCarte(etat: Etat): Etat {
+  if (etat.carte === VERSION_CARTE) return etat
+  const prises = new Set<number>()
+  const batiments = etat.batiments.map((b) => {
+    const voulue = numeroCase(Math.floor(b.case / 8) + 2, (b.case % 8) + 1)
+    const libre = (i: number) => estConstructible(i) && !prises.has(i)
+    let choisie = voulue
+    if (!libre(voulue)) {
+      // Distance en nombre de pas (lignes + colonnes) ; à égalité, le plus petit numéro.
+      const distance = (i: number) =>
+        Math.abs(Math.floor(i / TAILLE) - Math.floor(voulue / TAILLE)) + Math.abs((i % TAILLE) - (voulue % TAILLE))
+      choisie = ZONE_DE_CASE.map((_, i) => i)
+        .filter(libre)
+        .sort((a, c) => distance(a) - distance(c) || a - c)[0]
+    }
+    prises.add(choisie)
+    return { ...b, case: choisie }
+  })
+  return { ...etat, batiments, carte: VERSION_CARTE }
 }

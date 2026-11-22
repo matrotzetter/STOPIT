@@ -1,24 +1,20 @@
-/* Thème « soirée au coin du feu » : nuit prune, lumières ambrées.
-   Style rétro assorti au pixel art, mais doux pour les yeux : couleurs peu saturées,
-   texte bien lisible, beaucoup d'air entre les blocs, très peu de choses qui bougent.
+/* Thème « île dans l'espace » : nuit profonde, géante gazeuse et soleil lointain en fond
+   (voir Fond.tsx), cartes en verre fumé, texte crème, un seul doré pour l'argent et les
+   choix importants. Une seule police, des marges régulières, très peu de choses qui bougent.
    Pensé pour un téléphone tenu d'une main. Toutes les couleurs sont ici. */
 
 :root {
-  --fond: #1b1524;
-  --carte: #2a2137;
-  --carte-haut: #322841; /* haut des cartes, un peu plus clair : effet de relief */
-  --texte: #f2eae1; /* blanc cassé : moins éblouissant qu'un blanc pur */
-  --discret: #c4b8cb;
-  --accent: #ffc285; /* ambre doux : actions principales */
-  --accent-2: #f39a92; /* corail doux : fin des dégradés */
-  --degrade: linear-gradient(135deg, var(--accent), var(--accent-2));
-  --or: #ffd166; /* cagnotte */
-  --trait: #17111e; /* contour sombre des cartes et des boutons */
-  --ombre: 0 3px 0 var(--trait); /* ombre dure, sans flou, comme dans un vieux jeu */
-  --parchemin: #ecdcb0; /* papier du message dans la bouteille */
-  --parchemin-bord: #c9b07a;
-  --encre: #4a3222;
-  --chiffres: ui-monospace, 'SF Mono', Menlo, Consolas, monospace; /* police à chasse fixe, pour les chiffres seulement */
+  --fond: #0e1026; /* nuit : derrière tout le reste */
+  --texte: #fff3e4; /* crème : moins éblouissant qu'un blanc pur */
+  --discret: #aba6c4; /* lavande grisée : textes secondaires */
+  --or: #ffd27a; /* l'argent, les choix actifs, les barres de progression */
+  --verre: rgba(16, 15, 42, 0.74); /* fond des cartes : on devine le décor derrière */
+  --verre-clair: rgba(38, 35, 78, 0.78); /* boutons secondaires : assez opaques pour rester lisibles devant la géante */
+  --bord: rgba(255, 243, 228, 0.1); /* liseré fin des cartes et des boutons */
+  --encre: #1a1430; /* texte sur fond clair (bouton principal) */
+  --danger: #ff9a8f;
+  --rayon: 20px; /* arrondi des cartes */
+  --police: 'Avenir Next', Avenir, Inter, system-ui, -apple-system, sans-serif;
   color-scheme: dark;
 }
 
@@ -29,46 +25,46 @@
 body {
   margin: 0;
   min-height: 100vh;
-  /* Une lueur chaude en haut de l'écran, qui s'éteint vers le bas. */
-  background:
-    radial-gradient(120% 50% at 50% 0%, #3b2c4c 0%, rgba(59, 44, 76, 0) 70%),
-    var(--fond);
-  background-attachment: fixed;
+  background: var(--fond); /* le décor (Fond.tsx) est posé par-dessus, fixé à l'écran */
   color: var(--texte);
-  /* ui-rounded : la police arrondie de l'iPhone ; sinon la police normale de l'appareil. */
-  font-family: ui-rounded, 'SF Pro Rounded', system-ui, sans-serif;
+  font-family: var(--police);
   font-size: 17px;
-  line-height: 1.5; /* lignes aérées : plus reposant à lire */
+  line-height: 1.5;
   -webkit-font-smoothing: antialiased;
 }
 
 main {
+  position: relative; /* au-dessus du décor */
   max-width: 480px;
   margin: 0 auto;
   /* env(...) : marge supplémentaire pour l'encoche et la barre du bas des téléphones */
-  padding: calc(20px + env(safe-area-inset-top)) 18px calc(20px + env(safe-area-inset-bottom));
-}
-
-/* Laisse la place du bouton « J'ai une envie » fixé en bas. */
-main.avec-bouton-fixe {
-  padding-bottom: calc(110px + env(safe-area-inset-bottom));
+  padding: calc(24px + env(safe-area-inset-top)) 20px calc(24px + env(safe-area-inset-bottom));
 }
 
 h1 {
-  font-size: 1.7rem;
+  font-size: 1.75rem;
   font-weight: 700;
-  line-height: 1.25;
-  margin: 0 0 12px;
-  color: var(--accent); /* couleur unie : plus nette à lire qu'un dégradé */
+  letter-spacing: -0.01em;
+  line-height: 1.2;
+  margin: 8px 0 16px;
+}
+
+h2 {
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin: 24px 0 8px;
+}
+
+.carte h2 {
+  margin-top: 0;
 }
 
 p {
   margin: 0 0 10px;
 }
 
-/* Le dernier élément d'une carte ne laisse pas de vide sous lui. */
-.carte > :last-child {
-  margin-bottom: 0;
+a {
+  color: var(--or);
 }
 
 .discret {
@@ -76,39 +72,57 @@ p {
   font-size: 0.94rem;
 }
 
+/* Petit titre en capitales espacées, au-dessus d'un chiffre */
+.label {
+  margin: 0;
+  color: var(--discret);
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+/* ---------- Cartes en verre ---------- */
+
 .carte {
-  background: linear-gradient(180deg, var(--carte-haut), var(--carte));
-  border: 2px solid var(--trait);
-  border-radius: 12px;
-  padding: 18px;
-  margin-bottom: 18px;
-  /* un liseré clair en haut, à l'intérieur, puis l'ombre dure en dessous */
-  box-shadow:
-    inset 0 2px 0 rgba(255, 255, 255, 0.06),
-    var(--ombre);
+  background: var(--verre);
+  -webkit-backdrop-filter: blur(16px);
+  backdrop-filter: blur(16px); /* floute le décor derrière la carte */
+  border: 1px solid var(--bord);
+  border-radius: var(--rayon);
+  padding: 16px 18px;
+  margin-bottom: 12px;
+}
+
+/* Le dernier élément d'une carte ne laisse pas de vide sous lui. */
+.carte > :last-child {
+  margin-bottom: 0;
 }
 
 .centre {
   text-align: center;
 }
 
-.grand {
-  font-family: var(--chiffres);
-  font-size: 1.5rem;
-  letter-spacing: -0.03em;
-  font-weight: 700;
-  font-variant-numeric: tabular-nums; /* chiffres de largeur fixe : le compteur ne « saute » pas */
+/* Chiffres : même police, mais des chiffres de largeur fixe (un compteur ne « saute » pas). */
+.grand,
+.valeur {
   margin: 0;
-  color: var(--or);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+}
+
+.grand {
+  font-size: 2.6rem;
+  line-height: 1.1;
+}
+
+.grand .leger {
+  font-weight: 300;
 }
 
 .valeur {
-  font-family: var(--chiffres);
-  font-size: 1.05rem;
-  letter-spacing: -0.03em;
-  font-weight: 700;
-  margin: 0;
-  font-variant-numeric: tabular-nums;
+  font-size: 1.45rem;
 }
 
 .or {
@@ -118,32 +132,34 @@ p {
 .tuiles {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 14px;
-  margin-bottom: 18px;
+  gap: 10px;
+  margin-bottom: 12px;
 }
 
 .tuiles .carte {
-  position: relative;
   margin: 0;
 }
 
-/* Petite pastille avec un emoji, dans le coin de chaque tuile */
+/* Dans les tuiles, la valeur tient toujours sur une seule ligne. */
+.tuiles .valeur {
+  white-space: nowrap;
+}
+
+/* Une tuile qui prend toute la largeur de la grille */
+.tuiles .large {
+  grid-column: 1 / -1;
+}
+
+/* Petite icône dans le coin d'une carte */
 .icone {
-  display: grid;
-  place-items: center;
-  position: absolute;
-  top: 12px;
-  right: 12px;
-  width: 34px;
-  height: 34px;
-  border-radius: 8px;
-  background: rgba(255, 184, 107, 0.14);
-  font-size: 1.2rem;
+  float: right;
+  font-size: 1.1rem;
+  line-height: 1;
 }
 
 .rangee {
   display: flex;
-  gap: 12px;
+  gap: 10px;
 }
 
 .rangee > * {
@@ -155,121 +171,156 @@ p {
   margin-top: 0;
 }
 
+.espace-haut {
+  margin-top: 12px;
+}
+
+/* Barre de progression : un trait fin et doré */
 progress {
   display: block;
   width: 100%;
-  height: 14px;
-  margin: 12px 0;
-  border: 2px solid var(--trait);
-  border-radius: 8px;
+  height: 6px;
+  margin: 10px 0;
+  border: 0;
+  border-radius: 3px;
   overflow: hidden;
-  background: rgba(0, 0, 0, 0.35);
+  background: rgba(255, 243, 228, 0.12);
   appearance: none;
   -webkit-appearance: none;
 }
 
 progress::-webkit-progress-bar {
-  background: rgba(0, 0, 0, 0.35);
+  background: rgba(255, 243, 228, 0.12);
 }
 
 progress::-webkit-progress-value {
-  background: var(--degrade);
+  background: var(--or);
+  border-radius: 3px;
 }
 
 progress::-moz-progress-bar {
-  background: var(--degrade);
+  background: var(--or);
 }
 
-/* Boutons : gros, faciles à toucher */
+/* ---------- Boutons : gros, faciles à toucher ---------- */
+
 button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
   width: 100%;
   min-height: 56px;
+  padding: 0 16px;
   border: 0;
-  border-radius: 12px;
-  background: var(--degrade);
-  color: #2b1420;
+  border-radius: 18px;
+  background: var(--texte); /* bouton principal : crème, texte sombre */
+  color: var(--encre);
   font: inherit;
   font-size: 1.05rem;
   font-weight: 700;
   cursor: pointer;
-  border: 2px solid var(--trait);
-  /* bas du bouton plus sombre (son épaisseur), puis l'ombre dure */
-  box-shadow:
-    inset 0 -3px 0 rgba(0, 0, 0, 0.18),
-    var(--ombre);
-  transition: transform 0.08s ease-out;
+  transition: transform 0.08s ease-out, opacity 0.15s;
   -webkit-tap-highlight-color: transparent;
 }
 
-/* Le bouton s'enfonce sous le doigt : il descend et son ombre disparaît. */
+/* Le bouton s'enfonce légèrement sous le doigt. */
 button:active:not(:disabled) {
-  transform: translateY(3px);
-  box-shadow: inset 0 -2px 0 rgba(0, 0, 0, 0.22);
+  transform: scale(0.98);
 }
 
 button.secondaire {
-  background: #382d49;
-  font-weight: 600;
+  background: var(--verre-clair);
+  border: 1px solid var(--bord);
   color: var(--texte);
+  font-weight: 600;
 }
 
-.bouton-envie {
-  position: fixed;
-  left: 50%;
-  transform: translateX(-50%);
-  bottom: calc(16px + env(safe-area-inset-bottom));
-  width: min(448px, calc(100% - 32px));
-  min-height: 68px;
-  font-size: 1.25rem;
-  border-radius: 14px;
-}
-
-.bouton-envie:active:not(:disabled) {
-  transform: translate(-50%, 3px);
+button.danger {
+  color: var(--danger);
+  border-color: rgba(255, 154, 143, 0.35);
 }
 
 button:disabled {
-  opacity: 0.45;
+  opacity: 0.4;
   cursor: default;
 }
 
-/* Espace sous un bouton quand plusieurs boutons se suivent */
+/* Espace entre des boutons qui se suivent */
 button + button,
 button.espace {
-  margin-top: 14px;
+  margin-top: 10px;
 }
 
 button.espace {
-  margin-bottom: 24px;
+  margin-bottom: 20px;
 }
 
-/* Petits boutons à cocher (intensité, déclencheur) */
+/* Petit bouton carré avec une seule icône (Stats, Réglages sur l'accueil) */
+button.icone-seule {
+  width: 44px;
+  min-height: 44px;
+  height: 44px;
+  padding: 0;
+  margin: 0;
+  border-radius: 14px;
+  background: var(--verre);
+  border: 1px solid var(--bord);
+  color: var(--texte);
+}
+
+/* Le bouton « J'ai une envie » de l'accueil, fixé en bas de l'écran, atteignable du pouce */
+.bouton-envie {
+  position: fixed;
+  left: 50%;
+  bottom: calc(16px + env(safe-area-inset-bottom));
+  transform: translateX(-50%);
+  width: min(440px, calc(100% - 40px));
+  min-height: 60px;
+  font-size: 1.15rem;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
+  z-index: 2;
+}
+
+.bouton-envie:active:not(:disabled) {
+  transform: translateX(-50%) scale(0.98);
+}
+
+/* Laisse la place du bouton fixé en bas. */
+main.avec-bouton-fixe {
+  padding-bottom: calc(100px + env(safe-area-inset-bottom));
+}
+
+/* Pastilles à choisir (intensité, déclencheur, coiffure) */
 .puces {
   display: flex;
   flex-wrap: wrap;
-  gap: 10px;
+  gap: 8px;
 }
 
 button.puce {
   width: auto;
   min-width: 48px;
-  min-height: 48px;
+  min-height: 44px;
   margin: 0;
   padding: 0 16px;
-  border-radius: 10px;
-  background: #382d49;
+  border-radius: 14px;
+  background: var(--verre-clair);
+  border: 1px solid var(--bord);
   color: var(--texte);
   font-weight: 500;
-  box-shadow: inset 0 -3px 0 rgba(0, 0, 0, 0.22);
 }
 
 button.puce.choisie {
-  background: var(--degrade);
-  color: #2b1420;
+  background: var(--or);
+  border-color: var(--or);
+  color: var(--encre);
   font-weight: 700;
 }
 
-/* Respiration guidée */
+/* ---------- Mode Envie ---------- */
+
+/* Respiration guidée : un soleil doux qui gonfle et dégonfle */
 .zone-respiration {
   position: relative;
   height: 280px;
@@ -280,25 +331,25 @@ button.puce.choisie {
 
 .cercle-respiration {
   position: absolute;
-  width: 240px;
-  height: 240px;
+  width: 220px;
+  height: 220px;
   border-radius: 50%;
-  background: radial-gradient(circle, rgba(255, 209, 102, 0.6), rgba(255, 122, 138, 0.12));
-  box-shadow: 0 0 60px rgba(255, 184, 107, 0.35);
+  background: radial-gradient(circle, rgba(255, 246, 220, 0.9), rgba(255, 210, 122, 0.45) 45%, rgba(255, 184, 107, 0) 72%);
   transition-property: transform;
   transition-timing-function: ease-in-out;
 }
 
 .consigne {
   position: relative; /* au-dessus du cercle */
-  font-size: 1.4rem;
-  font-weight: 700;
   margin: 0;
+  color: var(--encre);
+  font-size: 1.3rem;
+  font-weight: 700;
 }
 
-/* La raison d'arrêter, mise en avant par un liseré ambre à gauche */
+/* La raison d'arrêter, mise en avant par un liseré doré à gauche */
 .carte.raison {
-  border-left: 6px solid var(--accent);
+  border-left: 3px solid var(--or);
 }
 
 /* Écran de victoire : les deux avatars, et le cristal entre eux */
@@ -321,12 +372,12 @@ button.puce.choisie {
   margin: 0 0 0 -0.5em;
 }
 
-/* Animation de victoire : le cristal apparaît en rebondissant */
+/* Le cristal apparaît en rebondissant */
 .victoire {
   font-size: 3.4rem;
   margin: 48px 0 8px;
   animation: rebond 0.7s ease-out;
-  filter: drop-shadow(0 0 24px rgba(255, 209, 102, 0.6));
+  filter: drop-shadow(0 0 24px rgba(255, 210, 122, 0.6));
 }
 
 @keyframes rebond {
@@ -341,18 +392,18 @@ button.puce.choisie {
   }
 }
 
-/* L'île : un dessin en pixel art, et par-dessus un calque invisible qui reçoit le doigt */
+/* ---------- L'île ---------- */
+
 .ile-cadre {
   position: relative;
   display: block;
-  margin-bottom: 12px;
+  margin: 0 0 12px;
 }
 
+/* Le canvas a un fond transparent : l'île flotte devant le décor de la page. */
 canvas.ile {
   display: block;
   width: 100%;
-  border-radius: 8px;
-  box-shadow: var(--ombre);
   image-rendering: pixelated; /* agrandi sans lissage : les gros pixels restent nets */
 }
 
@@ -368,80 +419,75 @@ svg.ile [role='button'] {
   cursor: pointer;
 }
 
-/* Les ampoules de la guirlande scintillent doucement. */
-.etoile {
-  animation: scintille 6s ease-in-out infinite;
+svg.ile [role='button']:focus {
+  outline: none; /* le contour de la case choisie est dessiné dans l'île elle-même */
 }
 
-@keyframes scintille {
-  50% {
-    opacity: 0.55;
-  }
-}
-
-/* Guirlande lumineuse en haut de l'accueil */
-svg.guirlande {
-  display: block;
-  width: 100%;
-  margin-bottom: 4px;
-  overflow: visible;
-}
-
-svg.guirlande path {
-  fill: none;
-  stroke: rgba(255, 255, 255, 0.25);
-  stroke-width: 0.3;
-}
-
-svg.guirlande rect {
-  fill: #ffd98a;
-  filter: drop-shadow(0 0 2px #ffb86b);
-}
-
-/* Sur l'accueil : l'île en grand, qui ouvre le jeu quand on la touche */
+/* Sur l'accueil : l'île est un grand bouton transparent qui ouvre l'écran Île */
 button.ile-accueil {
   display: block;
-  padding: 0 0 12px;
-  margin-bottom: 12px;
-  border-radius: 8px;
-  background: linear-gradient(180deg, var(--carte-haut), var(--carte));
-  color: var(--texte);
-  font-weight: 600;
+  padding: 0;
+  margin: 4px 0 16px;
+  min-height: 0;
+  background: none;
+  border-radius: 0;
 }
 
-button.ile-accueil canvas.ile {
-  box-shadow: none;
-  border-radius: 6px 6px 0 0;
+button.ile-accueil .ile-cadre {
+  margin: 0;
 }
 
 /* Ligne du catalogue : nom à gauche, coût à droite */
 button.choix-batiment {
-  display: flex;
   justify-content: space-between;
-  align-items: center;
   gap: 8px;
   padding: 0 14px;
   font-weight: 500;
   text-align: right;
 }
 
-/* Mini-jeu */
+/* Le message de la bouteille : un papier crème, texte sombre */
+.parchemin {
+  background: var(--texte);
+  color: var(--encre);
+  border-radius: var(--rayon);
+  padding: 18px 20px;
+  margin-bottom: 12px;
+}
+
+.parchemin-titre {
+  margin: 0 0 6px;
+  font-size: 0.85rem;
+  opacity: 0.7;
+}
+
+.parchemin-texte {
+  margin: 0 0 14px;
+  font-size: 1.15rem;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+.parchemin button.secondaire {
+  background: var(--encre);
+  border: 0;
+  color: var(--texte);
+}
+
+/* ---------- Mini-jeu ---------- */
+
 .mini-jeu canvas {
   display: block;
   width: 100%;
   margin-bottom: 12px;
-  border-radius: 8px;
-  box-shadow: var(--ombre);
-  image-rendering: pixelated; /* agrandi sans lissage : les gros pixels restent nets */
+  border-radius: 16px;
+  image-rendering: pixelated;
   touch-action: none; /* le doigt déplace les formes au lieu de faire défiler la page */
   user-select: none;
   -webkit-user-select: none;
 }
 
-/* Statistiques : graphiques en barres */
-.carte h2 {
-  margin-top: 0;
-}
+/* ---------- Statistiques : graphiques en barres ---------- */
 
 .barres {
   display: flex;
@@ -470,8 +516,8 @@ button.choix-batiment {
 .barres .barre {
   width: 100%;
   min-height: 2px; /* une ligne de base reste visible quand la valeur est zéro */
-  background: linear-gradient(180deg, var(--accent), var(--accent-2));
-  border-radius: 2px 2px 0 0;
+  background: var(--or);
+  border-radius: 3px 3px 0 0;
 }
 
 .barres .nombre,
@@ -491,8 +537,8 @@ button.choix-batiment {
 }
 
 .ligne-declencheur .barre {
-  height: 14px;
-  background: var(--degrade);
+  height: 8px;
+  background: var(--or);
   border-radius: 4px;
 }
 
@@ -501,7 +547,28 @@ button.choix-batiment {
   font-variant-numeric: tabular-nums;
 }
 
-/* Réglages */
+/* ---------- Formulaires et réglages ---------- */
+
+fieldset {
+  border: 0;
+  padding: 0;
+  margin: 0 0 24px;
+}
+
+legend {
+  font-weight: 700;
+  font-size: 1.05rem;
+  margin-bottom: 8px;
+  padding: 0;
+}
+
+label {
+  display: block;
+  margin-bottom: 12px;
+  color: var(--discret);
+  font-size: 0.9rem;
+}
+
 label.interrupteur {
   display: flex;
   align-items: center;
@@ -515,7 +582,7 @@ label.interrupteur {
 label.interrupteur input {
   width: 24px;
   height: 24px;
-  accent-color: var(--accent);
+  accent-color: var(--or);
 }
 
 /* Une étiquette qui a l'apparence d'un bouton (pour choisir un fichier) */
@@ -523,62 +590,14 @@ label.bouton {
   display: grid;
   place-items: center;
   min-height: 56px;
-  margin: 12px 0 0;
-  border: 2px solid var(--trait);
-  border-radius: 8px;
-  background: #2f2540;
-  box-shadow:
-    inset 0 -4px 0 rgba(0, 0, 0, 0.22),
-    var(--ombre);
+  margin: 10px 0 0;
+  border: 1px solid var(--bord);
+  border-radius: 18px;
+  background: var(--verre-clair);
   color: var(--texte);
   font-size: 1rem;
-  font-weight: 700;
+  font-weight: 600;
   cursor: pointer;
-}
-
-button.danger {
-  color: #ff8a80;
-  border-color: rgba(255, 138, 128, 0.6);
-}
-
-a {
-  color: var(--accent);
-}
-
-/* Formulaires */
-fieldset {
-  border: 0;
-  padding: 0;
-  margin: 0 0 24px;
-}
-
-legend {
-  font-weight: 700;
-  font-size: 1.1rem;
-  margin-bottom: 8px;
-  padding: 0;
-}
-
-label {
-  display: block;
-  margin-bottom: 12px;
-  color: var(--discret);
-  font-size: 0.9rem;
-}
-
-h2 {
-  font-size: 1.1rem;
-  font-weight: 700;
-  margin: 24px 0 8px;
-}
-
-.espace-haut {
-  margin-top: 12px;
-}
-
-textarea {
-  padding-top: 12px !important;
-  resize: vertical;
 }
 
 input[type='text'],
@@ -590,20 +609,26 @@ textarea {
   min-height: 52px;
   margin: 4px 0 12px;
   padding: 0 14px;
-  border: 2px solid var(--trait);
-  border-radius: 8px;
-  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid var(--bord);
+  border-radius: 14px;
+  background: rgba(0, 0, 0, 0.25);
   color: var(--texte);
   /* 17px : en dessous de 16px, l'iPhone zoome quand on touche un champ */
   font: inherit;
 }
 
-/* Contour ambré autour de l'élément actif (champ en cours de saisie, navigation au clavier) */
+textarea {
+  padding-top: 12px;
+  resize: vertical;
+}
+
+/* Contour doré autour de l'élément actif (champ en cours de saisie, navigation au clavier) */
 input:focus-visible,
 textarea:focus-visible,
 button:focus-visible,
+label.bouton:focus-within,
 [role='button']:focus-visible {
-  outline: 2px solid var(--accent);
+  outline: 2px solid var(--or);
   outline-offset: 2px;
 }
 
@@ -622,29 +647,30 @@ button:focus-visible,
   min-height: 52px;
   margin: 0;
   padding: 0 12px;
-  border: 2px solid var(--trait);
-  border-radius: 8px;
-  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--bord);
+  border-radius: 14px;
+  background: var(--verre-clair);
   color: var(--texte);
   font-size: 1rem;
   cursor: pointer;
 }
 
 .choix label.choisi {
-  border-color: var(--accent);
-  background: rgba(255, 184, 107, 0.12);
+  border-color: var(--or);
+  background: rgba(255, 210, 122, 0.12);
 }
 
 .choix input {
-  accent-color: var(--accent);
+  accent-color: var(--or);
 }
 
-/* Réglage des avatars */
+/* Réglage des avatars : les gros pixels restent nets quand le dessin est agrandi */
 canvas.apercu-avatar {
   display: block;
   width: 120px;
   height: 120px;
   margin: 0 auto 8px;
+  image-rendering: pixelated;
 }
 
 .couleurs {
@@ -662,9 +688,117 @@ input[type='color'] {
   height: 48px;
   margin-top: 4px;
   padding: 2px;
-  border: 2px solid var(--trait);
-  border-radius: 8px;
-  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid var(--bord);
+  border-radius: 12px;
+  background: rgba(0, 0, 0, 0.25);
+}
+
+/* ---------- Accueil ---------- */
+
+/* En-tête : la série à gauche, les boutons Stats et Réglages à droite */
+.entete {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.entete .grand {
+  margin: 2px 0;
+}
+
+/* Compte à rebours avant l'arrêt : plus long, donc plus petit */
+.grand.petit {
+  font-size: 1.6rem;
+}
+
+.entete .actions {
+  display: flex;
+  gap: 8px;
+}
+
+button.ile-accueil .discret {
+  display: block;
+  margin-top: 2px;
+  font-weight: 500;
+  text-align: center;
+}
+
+/* L'unité à côté d'un chiffre (« 24 unités ») */
+.unite {
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: var(--discret);
+}
+
+/* Une carte qui est aussi un bouton (prochaine récompense) */
+button.carte {
+  display: block;
+  width: 100%;
+  min-height: 0;
+  text-align: left;
+  color: var(--texte);
+  font-weight: 400;
+  font-size: 1rem;
+}
+
+button.carte > span {
+  display: block;
+}
+
+.ligne-titre {
+  display: flex !important;
+  justify-content: space-between;
+  align-items: baseline;
+}
+
+.nom-recompense {
+  margin-top: 6px;
+  font-weight: 600;
+}
+
+/* La question du jour : le texte, puis deux petits boutons */
+.carte.question {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 10px 10px 18px;
+}
+
+.carte.question > span {
+  flex: 1;
+  font-size: 0.95rem;
+  line-height: 1.3;
+}
+
+.carte.question button + button {
+  margin-top: 0;
+}
+
+button.petit {
+  width: auto;
+  min-height: 40px;
+  padding: 0 16px;
+  border-radius: 12px;
+  font-size: 0.95rem;
+  white-space: nowrap;
+}
+
+button.oui {
+  background: var(--or);
+  color: var(--encre);
+}
+
+/* ---------- Le décor (Fond.tsx) ---------- */
+
+svg.fond {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+  pointer-events: none;
 }
 
 /* Pour les personnes qui ont demandé moins d'animations à leur appareil */
@@ -677,48 +811,7 @@ input[type='color'] {
   }
 }
 
-/* Le titre de la tuile laisse la place de la pastille. */
-.tuiles .discret {
-  padding-right: 38px;
-}
-
-/* Avatars en pixel art : les gros pixels restent nets quand le dessin est agrandi ou réduit. */
-canvas.apercu-avatar {
-  image-rendering: pixelated;
-}
-
-/* Dans les tuiles, la valeur tient toujours sur une seule ligne. */
-.tuiles .valeur {
-  white-space: nowrap;
-}
-
-/* Le message de la bouteille à la mer : un papier clair, double bord et ombre dure. */
-.parchemin {
-  background: var(--parchemin);
-  color: var(--encre);
-  border: 2px solid var(--trait);
-  border-radius: 4px;
-  box-shadow:
-    inset 0 0 0 4px var(--parchemin-bord),
-    var(--ombre);
-  padding: 18px 20px;
-  margin-bottom: 18px;
-}
-
-.parchemin-titre {
-  margin: 0 0 6px;
-  font-size: 0.9rem;
-  opacity: 0.8;
-}
-
-.parchemin-texte {
-  margin: 0 0 14px;
-  font-size: 1.15rem;
-  font-weight: 700;
-  line-height: 1.35;
-}
-
-.parchemin button.secondaire {
-  background: var(--encre);
-  color: var(--parchemin);
+/* Les grands chiffres des tuiles (statistiques) restent sur une ligne */
+.tuiles .grand {
+  font-size: 1.9rem;
 }
