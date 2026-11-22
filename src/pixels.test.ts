@@ -1,10 +1,8 @@
 import { describe, expect, it } from 'vitest'
 import { CATALOGUE } from './config'
 import {
-  BATEAU,
   BATIMENTS,
   BOUTEILLE,
-  CIELS,
   COULEURS_MOTIFS,
   FEU,
   FLECHE,
@@ -14,6 +12,7 @@ import {
   NUAGE,
   SAISONS,
   periode,
+  hasard,
   saison,
 } from './pixels'
 
@@ -24,9 +23,6 @@ describe('periode', () => {
     ])
   })
 
-  it('chaque période a un ciel de 6 bandes', () => {
-    for (const ciel of Object.values(CIELS)) expect(ciel).toHaveLength(6)
-  })
 })
 
 describe('motifs', () => {
@@ -35,7 +31,7 @@ describe('motifs', () => {
   })
 
   it('chaque motif est rectangulaire et n’utilise que des lettres qui ont une couleur', () => {
-    for (const motif of [...FEU, NUAGE, FLECHE, BATEAU, BOUTEILLE, NOTE, ...MOUETTE, ...MOUTON, ...Object.values(BATIMENTS)]) {
+    for (const motif of [...FEU, NUAGE, FLECHE, BOUTEILLE, NOTE, ...MOUETTE, ...MOUTON, ...Object.values(BATIMENTS)]) {
       for (const ligne of motif) {
         expect(ligne).toHaveLength(motif[0].length)
         for (const lettre of ligne) expect(lettre === '.' || lettre in COULEURS_MOTIFS).toBe(true)
@@ -58,5 +54,16 @@ describe('saison', () => {
       expect(habillage.zones).toHaveLength(6)
       for (const lettre of Object.keys(habillage.motifs)) expect(lettre in COULEURS_MOTIFS).toBe(true)
     }
+  })
+})
+
+describe('hasard', () => {
+  it('donne toujours la même suite pour la même graine, entre 0 et 1', () => {
+    const a = hasard(7)
+    const b = hasard(7)
+    const suite = [a(), a(), a()]
+    expect([b(), b(), b()]).toEqual(suite)
+    for (const n of suite) expect(n >= 0 && n < 1).toBe(true)
+    expect(hasard(8)()).not.toBe(suite[0])
   })
 })

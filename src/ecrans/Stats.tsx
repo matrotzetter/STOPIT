@@ -119,7 +119,7 @@ export default function Stats({ etat, aller }: Props) {
         </>
       )}
 
-      <button onClick={() => aller('accueil')}>Retour</button>
+      <button className="secondaire" onClick={() => aller('accueil')}>Retour</button>
     </main>
   )
 }

@@ -1,4 +1,5 @@
 // Écran « Récompenses » : liste, ajout, modification, suppression, encaissement.
+import { nouvelId } from '../stockage'
 import { useState, type FormEvent } from 'react'
 import type { Ecran } from '../App'
 import { PALIERS_JOURS } from '../config'
@@ -37,7 +38,7 @@ export default function Recompenses({ etat, maj, aller }: Props) {
     const saisie = { nom: brouillon.nom.trim(), prix: Number(brouillon.prix), palierJours: Number(brouillon.palier) }
     const recompenses = brouillon.id
       ? etat.recompenses.map((r) => (r.id === brouillon.id ? { ...r, ...saisie } : r))
-      : [...etat.recompenses, { id: crypto.randomUUID(), ...saisie }]
+      : [...etat.recompenses, { id: nouvelId(), ...saisie }]
     maj({ ...etat, recompenses })
     setBrouillon(null)
   }
@@ -163,7 +164,7 @@ export default function Recompenses({ etat, maj, aller }: Props) {
         </>
       )}
 
-      <button onClick={() => aller('accueil')}>Retour</button>
+      <button className="secondaire" onClick={() => aller('accueil')}>Retour</button>
     </main>
   )
 }

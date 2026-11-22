@@ -5,13 +5,19 @@ import type { Envie } from './types'
 
 /** Nombre d'envies pour chacun des derniers jours, du plus ancien à aujourd'hui. */
 export function enviesParJour(envies: Envie[], maintenant: number, nbJours = 14): { jour: string; total: number }[] {
+  // On compte d'abord les envies de chaque jour, en une seule lecture de la liste.
+  const parJour = new Map<string, number>()
+  for (const e of envies) {
+    const jour = cleJour(e.date)
+    parJour.set(jour, (parJour.get(jour) ?? 0) + 1)
+  }
   const resultat = []
   for (let i = nbJours - 1; i >= 0; i--) {
     // setDate recule d'un jour de calendrier (plus sûr que de retirer 24 h, à cause des changements d'heure).
     const date = new Date(maintenant)
     date.setDate(date.getDate() - i)
     const jour = cleJour(date.getTime())
-    resultat.push({ jour, total: envies.filter((e) => cleJour(e.date) === jour).length })
+    resultat.push({ jour, total: parJour.get(jour) ?? 0 })
   }
   return resultat
 }

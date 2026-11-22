@@ -27,8 +27,14 @@ export default function Envie({ etat, maj, aller }: Props) {
   const [declencheur, setDeclencheur] = useState<string>()
   /** Heure de départ du minuteur. */
   const [debut, setDebut] = useState(0)
-  // Une de tes raisons, tirée au hasard une seule fois à l'ouverture de l'écran.
-  const [raison] = useState(() => etat.profil.raisons[Math.floor(Math.random() * etat.profil.raisons.length)])
+  // Une de tes raisons (parmi celles qui sont remplies), tirée au hasard une seule fois
+  // à l'ouverture de l'écran. undefined si aucune n'est remplie.
+  const [raison] = useState(() => {
+    const remplies = etat.profil.raisons.map((r) => r.trim()).filter(Boolean)
+    return remplies[Math.floor(Math.random() * remplies.length)]
+  })
+  /** La raison entre guillemets, ou rien. */
+  const citation = raison ? `« ${raison} »` : ''
   // Rafraîchi 4 fois par seconde pour que la respiration change de sens au bon moment.
   const maintenant = useMaintenant(250)
 
@@ -86,10 +92,12 @@ export default function Envie({ etat, maj, aller }: Props) {
         <p className="discret">Elle va passer. Occupons les 5 prochaines minutes.</p>
 
         {/* Une de tes raisons d'arrêter, pour te rappeler pourquoi tu tiens. */}
-        <section className="carte raison">
-          <p className="discret">Tu as arrêté pour :</p>
-          <p className="valeur">« {raison} »</p>
-        </section>
+        {raison && (
+          <section className="carte raison">
+            <p className="discret">Tu as arrêté pour :</p>
+            <p className="valeur">{citation}</p>
+          </section>
+        )}
 
         <button onClick={() => demarrer('jouer')}>Jouer</button>
         <button className="secondaire espace" onClick={() => demarrer('respirer')}>
@@ -183,7 +191,8 @@ export default function Envie({ etat, maj, aller }: Props) {
     return (
       <main className="centre">
         <p className="discret" role="timer" aria-label="Temps restant">
-          {minutes}:{secondes} · « {raison} »
+          {minutes}:{secondes}
+          {raison && ` · ${citation}`}
         </p>
         <progress value={ecouleMs} max={DUREE_ENVIE_MS} aria-hidden="true" />
         {/* Le score ne sert qu'au record personnel : il ne rapporte ni énergie ni cristaux. */}
@@ -221,7 +230,7 @@ export default function Envie({ etat, maj, aller }: Props) {
         <p className="consigne">{inspire ? 'Inspire' : 'Expire'}</p>
       </div>
 
-      <p className="discret">« {raison} »</p>
+      {raison && <p className="discret">{citation}</p>}
 
       <button className="secondaire" onClick={() => aller('accueil')}>
         Quitter

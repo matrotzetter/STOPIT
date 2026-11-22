@@ -16,6 +16,7 @@ describe('lireEtat', () => {
       batiments: [{ case: 62, type: 'cabane', niveau: 2 }],
       recordPuzzle: 42,
       sons: false,
+      carte: 2,
     }
     expect(lireEtat(JSON.stringify(etat))).toEqual(etat)
   })
@@ -24,6 +25,13 @@ describe('lireEtat', () => {
     const etat = lireEtat(JSON.stringify({ profil }))!
     expect(etat.batiments).toEqual([])
     expect(etat.envies).toEqual([])
+  })
+
+  it('replace les bâtiments d’une ancienne carte 8 × 8 sur la carte 10 × 10', () => {
+    const etat = lireEtat(JSON.stringify({ profil, batiments: [{ case: 62, type: 'cabane', niveau: 2 }] }))!
+    // Ancienne case 62 = ligne 7, colonne 6 → nouvelle ligne 9, colonne 7 = case 97.
+    expect(etat.batiments).toEqual([{ case: 97, type: 'cabane', niveau: 2 }])
+    expect(etat.carte).toBe(2)
   })
 
   it('refuse un fichier illisible, vide, sans profil ou mal formé', () => {

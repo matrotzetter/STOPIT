@@ -4,6 +4,7 @@ import type { Ecran } from '../App'
 import { CATALOGUE, DUREE_CONCERT_MS, NIVEAU_MAX, PALIERS_JOURS } from '../config'
 import { JOUR_MS, tempsCumuleMs } from '../logique/calculs'
 import {
+  EST_EAU,
   ZONE_DE_CASE,
   ameliorer,
   casesDegagees,
@@ -120,10 +121,14 @@ export default function Ile({ etat, maj, aller }: Props) {
 
       {/* ---------- Panneau de la case sélectionnée ---------- */}
       {selection === null ? (
-        <p className="discret">Touche une case dégagée pour construire, ou la bouteille sur la plage.</p>
+        <p className="discret">Touche une case dégagée pour construire, ou la bouteille sur l'îlot.</p>
       ) : !degagee ? (
         <section className="carte">
           <p>🌫️ Cette case est encore dans la brume (zone {ZONE_DE_CASE[selection] + 1}).</p>
+        </section>
+      ) : EST_EAU[selection] ? (
+        <section className="carte">
+          <p>💧 Une source : l'eau descend jusqu'au bord de l'île et tombe en cascade. On ne construit pas sur l'eau.</p>
         </section>
       ) : batiment && modeleBatiment ? (
         <section className="carte">
@@ -202,7 +207,7 @@ export default function Ile({ etat, maj, aller }: Props) {
       <button className="secondaire" onClick={() => aller('entrainement')}>
         S'entraîner au mini-jeu (sans gain)
       </button>
-      <button onClick={() => aller('accueil')}>Retour</button>
+      <button className="secondaire" onClick={() => aller('accueil')}>Retour</button>
     </main>
   )
 }

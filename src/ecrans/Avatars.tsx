@@ -48,7 +48,7 @@ export default function Avatars({ etat, maj, aller }: Props) {
   return (
     <main>
       <h1>Mes avatars</h1>
-      <p className="discret">Ils apparaissent sur la plage de l'île, au coin du feu du mini-jeu et quand tu surmontes une envie. Chaque changement est enregistré tout de suite.</p>
+      <p className="discret">Ils apparaissent sur l'îlot sous ton île, au coin du feu du mini-jeu et quand tu surmontes une envie. Chaque changement est enregistré tout de suite.</p>
 
       {avatars.map((a, i) => (
         <section className="carte" key={i}>
@@ -99,7 +99,7 @@ export default function Avatars({ etat, maj, aller }: Props) {
         </section>
       ))}
 
-      <button onClick={() => aller('reglages')}>Retour</button>
+      <button className="secondaire" onClick={() => aller('reglages')}>Retour</button>
     </main>
   )
 }

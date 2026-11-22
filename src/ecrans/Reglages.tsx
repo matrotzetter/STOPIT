@@ -98,7 +98,7 @@ export default function Reglages({ etat, maj, aller, reinitialiser }: Props) {
         </p>
       </section>
 
-      <button onClick={() => aller('accueil')}>Retour</button>
+      <button className="secondaire" onClick={() => aller('accueil')}>Retour</button>
     </main>
   )
 }

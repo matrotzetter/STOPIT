@@ -25,7 +25,7 @@ commenter le code en français, ne pas supposer qu'il connaît les outils.
 - Toutes les constantes d'équilibrage dans `src/config.ts`.
 - Aucune affirmation médicale. Aucun fichier image ou son externe.
 - Aucune mécanique pour retenir l'utilisateur dans l'app.
-- Interface en français, montants en CHF, thème sombre, gros boutons, style pixel art.
+- Interface en français, montants en CHF, thème sombre, gros boutons, île en pixel art.
 
 ## Règles de calcul (`src/logique/calculs.ts`)
 
@@ -42,7 +42,12 @@ commenter le code en français, ne pas supposer qu'il connaît les outils.
 
 ## Règles de l'île (`src/logique/ile.ts`)
 
-- Carte 8 × 8 décrite dans `CARTE` (`config.ts`) : chaque chiffre = zone de la case.
+- Carte 10 × 10 décrite dans `CARTE` (`config.ts`) : chaque chiffre = zone de la case,
+  « . » = pas de terre (forme irrégulière). `SOURCES` : deux bassins + ruisseaux (cases
+  d'eau, `EST_EAU`), non constructibles, qui finissent en cascade au bord.
+- `etat.carte` = 2 pour la carte 10 × 10. Absent = ancienne carte 8 × 8 : `migrerCarte`
+  (appelée par `lireEtat`) replace chaque bâtiment (ligne + 2, colonne + 1), ou sur la case
+  libre la plus proche s'il tombe sur l'eau ou hors de l'île.
 - La zone i s'ouvre à `PALIERS_JOURS[i]` jours cumulés (3, 7, 14, 30, 60, 90), puis
   se dégage case par case en 3 jours, de la côte vers le sommet.
 - Rechute : la dernière zone ouverte se recouvre, puis se redégage en 3 jours.
@@ -52,7 +57,7 @@ commenter le code en français, ne pas supposer qu'il connaît les outils.
   bâtiments posés (pas de compteur enregistré).
 - Bâtiments : coût en énergie, améliorables jusqu'au niveau 3 (énergie + cristaux).
   Décorations : coût en cristaux, non améliorables. Purement visuels.
-- Monuments : un trophée par récompense encaissée, sur la plage sous la carte.
+- Monuments : un trophée par récompense encaissée, sur l'îlot sous l'île.
 
 ## Avancement
 
@@ -77,19 +82,16 @@ commenter le code en français, ne pas supposer qu'il connaît les outils.
 
 - [x] (h) habillage en pixel art, après plusieurs essais abandonnés (volume, 3D, chibi).
   État actuel, le seul à connaître :
-  - Thème « soirée au coin du feu » : toutes les couleurs sont des variables en tête de
-    `styles.css` (contours `--trait`, ombres dures `--ombre`, police à chasse fixe
-    `--chiffres` pour les chiffres seulement). Tons doux, peu d'animations.
+  - Thème remplacé à l'étape (m), voir plus bas.
   - Avatars (`src/avatar.ts`) : 16 × 21 gros pixels. `CALQUES` décrit chaque calque en
     texte (corps, cheveux, barbe, lunettes, saxophone, dab) ; `dessinerAvatar` les
     superpose, avec respiration, clignement, regard et dab. Deux avatars dans
     `etat.avatars` (facultatif, complété par `AVATARS_DEFAUT` via `avatarsDe`), réglés
     dans `src/ecrans/Avatars.tsx`. Purement décoratifs.
-  - Île et mini-jeu : chacun dans un `<canvas>` de très basse résolution (160 px de
+  - Île et mini-jeu : chacun dans un `<canvas>` de très basse résolution (200 px de
     large pour l'île, ~115 pour le jeu), agrandi par `image-rendering: pixelated`.
     Tout se mesure en « gros pixels » entiers, avec `fillRect`. Motifs en texte dans
-    `src/pixels.ts` (feu, nuage, flèche, `BATIMENTS`). Ciel de l'île selon l'heure
-    (`periode`, `CIELS`).
+    `src/pixels.ts` (feu, nuage, flèche, `BATIMENTS`).
   - Sur l'île, un SVG transparent posé par-dessus porte une zone par case : clics,
     clavier et lecteur d'écran passent par lui.
   - `animer()` dans `src/avatar.ts` : la seule boucle d'animation, 12 images par
@@ -112,17 +114,33 @@ commenter le code en français, ne pas supposer qu'il connaît les outils.
   - Saisons (`saison`, `SAISONS` dans `src/pixels.ts`) : couleurs du sol et du feuillage,
     pétales, feuilles ou flocons qui tombent ; en novembre, quelques flocons ; neige sur
     les toits en hiver.
-  - Vie : voilier au large, mouettes (sauf la nuit), fumée (`CHEMINEES`), mouton près de
-    la ferme. Ce qui passe devant les cases est dessiné après elles (`pardessus`).
+  - Vie : mouettes le jour, lucioles le soir, fumée (`CHEMINEES`), mouton près de la
+    ferme. Ce qui passe devant les cases est dessiné après elles (`pardessus`).
   - Décoration « Club de jazz » (💎 60) : bouton « Écouter le concert » → `son('jazz')`
     (ii-V-I swing généré dans `src/sons.ts`) ; pendant `DUREE_CONCERT_MS`, les avatars
     s'arrêtent, le premier joue du sax, des notes montent.
-  - Bouteille à la mer sur la plage (si des raisons existent) : cliquable sur l'écran Île
+  - Bouteille sur l'îlot (si des raisons existent) : cliquable sur l'écran Île
     seulement, affiche une raison au hasard dans un `.parchemin`.
 
 - [x] (l) déconstruire : `deconstruire` / `refusDeconstruction` dans `src/logique/ile.ts`
   (testés). Rend tout le coût (`coutTotal` : construction + améliorations), ce qui découle
   directement des dépenses recalculées. Interdit sous la brume. Bouton avec confirmation.
+
+- [x] (m) refonte visuelle « île dans l'espace » (choisie parmi une trentaine de maquettes) :
+  - Décor commun `src/Fond.tsx` (SVG fixe : nuit, étoiles, soleil lointain, géante gazeuse
+    qui se lève en bas ; `discret` hors de l'accueil pour la lisibilité).
+  - `styles.css` : palette courte en variables (`--texte` crème, `--discret`, `--or` pour
+    l'argent et les choix actifs, `--verre` pour les cartes floutées), une seule police,
+    bouton principal crème, `.secondaire` en verre. Icônes au trait : `src/Icone.tsx`.
+  - Accueil : série en grand + boutons Stats/Réglages, île (sans îlot), tuiles Cagnotte /
+    Évité, carte « Prochaine récompense » qui ouvre les récompenses, question du jour,
+    « J'ai une envie » fixé en bas.
+  - `CarteIle.tsx` : fond transparent ; rocher sous l'île en perspective (faces éclairée /
+    à l'ombre, strates, pics, mousse selon la saison), calculé une fois par « zones ouvertes
+    + saison » (`calqueRocher`) avec un hasard reproductible (`hasard`) ; il grandit avec les
+    zones. Ruisseaux et cascades animés (gelés en hiver). Îlot dessous (avatars, trophées,
+    bouteille), masqué sur l'accueil (`ilot={false}`). Calculs refaits une fois par minute.
+  - Mini-jeu : feu de camp sous les étoiles. Le voilier, la mer et le ciel par heure ont disparu.
 
 Leçons pour la suite : avant toute refonte visuelle, montrer deux ou trois essais
 côte à côte et demander ; poser une question quand la demande peut se comprendre de
