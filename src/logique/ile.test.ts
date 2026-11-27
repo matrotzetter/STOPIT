@@ -66,13 +66,13 @@ describe('brume', () => {
     expect(apres).toBeGreaterThan(avant)
   })
 
-  it('une rechute recouvre la dernière zone ouverte, qui se redégage en 3 jours', () => {
-    // Jour 8 : les zones 0 et 1 sont ouvertes ; la zone 1 (16 cases) est la dernière.
+  it('une rechute recouvre toute l’île, qui se redégage en 3 jours', () => {
+    // Jour 8 : les zones 0 (15 cases) et 1 (16 cases) sont ouvertes.
     const etat: Etat = { ...base, rechutes: [{ date: t0 + 8 * J, unites: 1 }] }
-    expect(degageesDansZone(base, t0 + 8 * J, 1)).toBe(5) // sans rechute
-    expect(degageesDansZone(etat, t0 + 8 * J, 1)).toBe(0) // recouverte
-    expect(degageesDansZone(etat, t0 + 8 * J, 0)).toBe(15) // les autres zones ne bougent pas
-    expect(degageesDansZone(etat, t0 + 11 * J, 1)).toBe(16) // redégagée 3 jours plus tard
+    expect(degageesDansZone(base, t0 + 8 * J, 0)).toBe(15) // sans rechute
+    expect(casesDegagees(etat, t0 + 8 * J).some(Boolean)).toBe(false) // tout est recouvert
+    expect(degageesDansZone(etat, t0 + 11 * J, 0)).toBe(15) // 3 jours plus tard,
+    expect(degageesDansZone(etat, t0 + 11 * J, 1)).toBe(16) // tout est redégagé
   })
 
   it('une rechute avant toute ouverture de zone ne change rien à l’île', () => {

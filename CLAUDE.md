@@ -50,7 +50,7 @@ commenter le code en français, ne pas supposer qu'il connaît les outils.
   libre la plus proche s'il tombe sur l'eau ou hors de l'île.
 - La zone i s'ouvre à `PALIERS_JOURS[i]` jours cumulés (3, 7, 14, 30, 60, 90), puis
   se dégage case par case en 3 jours, de la côte vers le sommet.
-- Rechute : la dernière zone ouverte se recouvre, puis se redégage en 3 jours.
+- Rechute : toute l'île se recouvre, puis chaque zone ouverte se redégage en 3 jours.
   Les bâtiments sous la brume sont conservés mais cachés.
 - Énergie = heures cumulées × 10 − énergie dépensée. Cristaux disponibles =
   cristaux gagnés − cristaux dépensés. Les dépenses sont recalculées à partir des

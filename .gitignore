@@ -2,3 +2,4 @@ node_modules
 dist
 # Icônes fabriquées par scripts/icones.mjs à chaque « npm run build »
 public
+graphify-out/

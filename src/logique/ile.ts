@@ -50,19 +50,15 @@ export function ouvertureZone(etat: Etat, zone: number): number {
 
 /**
  * Moment à partir duquel la brume d'une zone se dissipe : son ouverture, ou la
- * dernière rechute survenue pendant qu'elle était la dernière zone ouverte.
+ * dernière rechute survenue depuis (une rechute recouvre toute l'île).
  * Renvoie null si la zone n'est pas encore ouverte.
  */
 function debutDegagement(etat: Etat, zone: number, maintenant: number): number | null {
   const ouverture = ouvertureZone(etat, zone)
   if (maintenant < ouverture) return null
-  // Tant que la zone suivante n'est pas ouverte, celle-ci est « la dernière zone ouverte ».
-  const ouvertureSuivante = zone + 1 < PALIERS_JOURS.length ? ouvertureZone(etat, zone + 1) : Infinity
   let debut = ouverture
   for (const r of etat.rechutes) {
-    if (r.date <= maintenant && r.date >= ouverture && r.date < ouvertureSuivante) {
-      debut = Math.max(debut, r.date)
-    }
+    if (r.date <= maintenant && r.date >= ouverture) debut = Math.max(debut, r.date)
   }
   return debut
 }
